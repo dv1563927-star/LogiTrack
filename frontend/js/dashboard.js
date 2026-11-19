@@ -1,4 +1,11 @@
-/* LogiTrack — panel administrativo */
+/* LogiTrack — panel administrativo
+ *
+ * Flujo:
+ *   Movimientos  -> se elige qué va a pasar y se registra todo junto
+ *                   (tipo + bodegas + producto + cantidad).
+ *   Detalle      -> solo lectura: se busca un movimiento por ID y se ve
+ *                   qué se movió. No se crea ni se edita nada.
+ */
 
 const API = "http://localhost:8080";
 
@@ -82,20 +89,30 @@ function mensaje(texto, tipo) {
   return `<div class="aviso aviso--${tipo}">${esc(texto)}</div>`;
 }
 
+function opcionesBodega(bodegas) {
+  return bodegas.map((b) =>
+    `<option value="${esc(b.id)}">${esc(b.nombre)} — ${esc(b.ubicacion)}</option>`).join("");
+}
+
+function opcionesProducto(productos) {
+  return productos.map((p) =>
+    `<option value="${esc(p.id)}">${esc(p.nombre)} — stock ${esc(p.stock)}</option>`).join("");
+}
+
 /* ================= Vistas ================= */
 
 async function vistaBodegas() {
   const bodegas = await pedir("/api/bodega");
 
-  const formulario = esAdmin ? panel("Nueva bodega", "Los campos son obligatorios", `
-    <form id="form-bodega" style="padding:18px">
+  const formulario = esAdmin ? panel("Nueva bodega", "Todos los campos son obligatorios", `
+    <form id="form-bodega" class="form-cuerpo">
       <div class="form-fila">
         <div class="campo"><label for="b-nombre">Nombre</label><input id="b-nombre" required placeholder="Bodega Occidente"></div>
         <div class="campo"><label for="b-ubicacion">Ubicación</label><input id="b-ubicacion" required placeholder="Pereira"></div>
         <div class="campo"><label for="b-capacidad">Capacidad</label><input id="b-capacidad" type="number" min="1" required placeholder="1500"></div>
         <div class="campo"><label for="b-encargado">Encargado</label><input id="b-encargado" required placeholder="Ana Torres"></div>
       </div>
-      <div style="margin-top:16px;display:flex;align-items:center;gap:12px">
+      <div class="form-pie">
         <button type="submit" class="boton boton--primario">Guardar bodega</button>
         <span id="b-aviso" class="ayuda"></span>
       </div>
@@ -111,14 +128,14 @@ async function vistaProductos() {
   const productos = await pedir("/api/producto");
 
   const formulario = esAdmin ? panel("Nuevo producto", "El stock se actualiza solo con los movimientos", `
-    <form id="form-producto" style="padding:18px">
+    <form id="form-producto" class="form-cuerpo">
       <div class="form-fila">
         <div class="campo"><label for="p-nombre">Nombre</label><input id="p-nombre" required placeholder="Monitor 27"></div>
         <div class="campo"><label for="p-categoria">Categoría</label><input id="p-categoria" required placeholder="Pantallas"></div>
         <div class="campo"><label for="p-stock">Stock inicial</label><input id="p-stock" type="number" min="0" required placeholder="10"></div>
         <div class="campo"><label for="p-precio">Precio</label><input id="p-precio" type="number" min="1" step="0.01" required placeholder="450000"></div>
       </div>
-      <div style="margin-top:16px;display:flex;align-items:center;gap:12px">
+      <div class="form-pie">
         <button type="submit" class="boton boton--primario">Guardar producto</button>
         <span id="p-aviso" class="ayuda"></span>
       </div>
@@ -142,62 +159,154 @@ async function vistaInventario() {
   ));
 }
 
-async function vistaMovimiento() {
-  const movimientos = await pedir("/api/movimiento");
+/* ---------- MOVIMIENTO: acá se registra todo ---------- */
 
-  const formulario = panel("Nuevo movimiento", "El usuario responsable se toma del token", `
-    <form id="form-movimiento" style="padding:18px">
+async function vistaMovimiento() {
+  const [bodegas, productos, movimientos] = await Promise.all([
+    pedir("/api/bodega"), pedir("/api/producto"), pedir("/api/movimiento")
+  ]);
+
+  const sinBodegas = bodegas.length === 0 || productos.length === 0;
+
+  const formulario = panel(
+    "Registrar movimiento",
+    "Elegí qué pasa, entre qué bodegas y con qué producto. Se registra todo junto.",
+    sinBodegas
+      ? `<div class="form-cuerpo">${mensaje("Primero necesitás al menos una bodega y un producto.", "alerta")}</div>`
+      : `
+    <form id="form-movimiento" class="form-cuerpo">
       <div class="form-fila">
-        <div class="campo"><label for="m-tipo">Tipo</label>
-          <select id="m-tipo">
-            <option value="ENTRADA">ENTRADA</option>
-            <option value="SALIDA">SALIDA</option>
-            <option value="TRANSFERENCIA">TRANSFERENCIA</option>
+        <div class="campo ancho-2">
+          <label for="m-tipo">Qué va a pasar</label>
+          <select id="m-tipo" data-tipo>
+            <option value="ENTRADA">Entrada — ingresa mercancía a una bodega</option>
+            <option value="SALIDA">Salida — sale mercancía de una bodega</option>
+            <option value="TRANSFERENCIA">Transferencia — pasa de una bodega a otra</option>
           </select>
         </div>
-        <div class="campo"><label for="m-origen">Bodega origen</label><input id="m-origen" type="number" min="1" placeholder="Solo SALIDA y TRANSFERENCIA"></div>
-        <div class="campo"><label for="m-destino">Bodega destino</label><input id="m-destino" type="number" min="1" placeholder="Solo ENTRADA y TRANSFERENCIA"></div>
+
+        <div class="campo" id="c-origen">
+          <label for="m-origen">Desde qué bodega sale</label>
+          <select id="m-origen">${opcionesBodega(bodegas)}</select>
+        </div>
+
+        <div class="campo" id="c-destino">
+          <label for="m-destino">A qué bodega entra</label>
+          <select id="m-destino">${opcionesBodega(bodegas)}</select>
+        </div>
+
+        <div class="campo">
+          <label for="m-producto">Producto</label>
+          <select id="m-producto">${opcionesProducto(productos)}</select>
+        </div>
+
+        <div class="campo">
+          <label for="m-cantidad">Cantidad</label>
+          <input id="m-cantidad" type="number" min="1" value="1" required>
+        </div>
       </div>
-      <div style="margin-top:16px;display:flex;align-items:center;gap:12px">
-        <button type="submit" class="boton boton--primario">Registrar movimiento</button>
+
+      <div class="form-pie">
+        <button type="submit" class="boton boton--primario" id="btn-registrar">Registrar movimiento</button>
         <span id="m-aviso" class="ayuda"></span>
       </div>
     </form>`);
 
-  return formulario + panel("Movimientos", movimientos.length + " registrados", tabla(
-    ["ID", "Fecha", "Tipo", "Usuario", "Origen", "Destino"],
-    movimientos.map((m) => [esc(m.id), fecha(m.fecha),
+  const referencia = `<div class="rejilla rejilla--2">
+    ${panel("Bodegas disponibles", "Para saber cuál es cuál",
+      tabla(["ID", "Bodega", "Ubicación"], bodegas.map((b) => [esc(b.id), esc(b.nombre), esc(b.ubicacion)])))}
+    ${panel("Productos disponibles", "Con el stock actual",
+      tabla(["ID", "Producto", "Stock"], productos.map((p) => [esc(p.id), esc(p.nombre),
+        `<span class="dato-num">${esc(p.stock)}</span>`])))}
+  </div>`;
+
+  const historial = panel("Movimientos registrados", movimientos.length + " en total", tabla(
+    ["ID", "Fecha", "Tipo", "Registró", "Origen", "Destino", ""],
+    movimientos.slice().reverse().map((m) => [esc(m.id), fecha(m.fecha),
       `<span class="eti eti--neutra">${esc(m.tipo)}</span>`,
-      esc(m.usuario?.username),
+      esc(m.usuario?.nombre ?? m.usuario?.username),
       esc(m.bodegaOrigen?.nombre ?? "—"),
-      esc(m.bodegaDestino?.nombre ?? "—")])
+      esc(m.bodegaDestino?.nombre ?? "—"),
+      `<button class="boton boton--secundario boton--sm" data-ver="${esc(m.id)}">Ver detalle</button>`])
   ));
+
+  return formulario + referencia + historial;
 }
 
-async function vistaDetalle() {
-  const detalles = await pedir("/api/detalle");
+/* ---------- DETALLE: solo lectura ---------- */
 
-  const formulario = panel("Agregar producto al movimiento", "Acá es donde cambia el stock", `
-    <form id="form-detalle" style="padding:18px">
+async function vistaDetalle(idInicial) {
+  const movimientos = await pedir("/api/movimiento");
+  const idBuscado = idInicial ? String(idInicial) : "";
+
+  const buscador = panel("Buscar un movimiento", "Escribí el ID o tocá «Ver detalle» en la lista de abajo", `
+    <div class="form-cuerpo">
       <div class="form-fila">
-        <div class="campo"><label for="d-movimiento">ID del movimiento</label><input id="d-movimiento" type="number" min="1" required placeholder="1"></div>
-        <div class="campo"><label for="d-producto">ID del producto</label><input id="d-producto" type="number" min="1" required placeholder="3"></div>
-        <div class="campo"><label for="d-cantidad">Cantidad</label><input id="d-cantidad" type="number" min="1" required placeholder="10"></div>
+        <div class="campo">
+          <label for="d-id">ID del movimiento</label>
+          <input id="d-id" type="number" min="1" placeholder="1" value="${esc(idBuscado)}">
+        </div>
+        <div class="campo" style="grid-column: span 1">
+          <button type="button" class="boton boton--primario" id="btn-buscar-detalle">Consultar</button>
+        </div>
       </div>
-      <div style="margin-top:16px;display:flex;align-items:center;gap:12px">
-        <button type="submit" class="boton boton--primario">Agregar detalle</button>
-        <span id="d-aviso" class="ayuda"></span>
-      </div>
-    </form>`);
+    </div>`);
 
-  return formulario + panel("Detalles de movimiento", detalles.length + " registrados", tabla(
-    ["ID", "Movimiento", "Producto", "Cantidad"],
-    detalles.map((d) => [esc(d.id),
-      "#" + esc(d.movimiento?.id) + " · " + esc(d.movimiento?.tipo),
-      esc(d.producto?.nombre),
-      `<span class="dato-num">${esc(d.cantidad)}</span>`])
+  const resultado = `<div id="d-resultado">${
+    movimientos.length
+      ? `<div class="panel"><div class="celda-vacia">Elegí un movimiento para ver qué se movió.</div></div>`
+      : `<div class="panel"><div class="celda-vacia"><strong>Todavía no hay movimientos</strong>
+         Registrá uno desde la sección Movimientos.</div></div>`
+  }</div>`;
+
+  const lista = panel("Movimientos", movimientos.length + " en total", tabla(
+    ["ID", "Fecha", "Tipo", "Registró", "Origen", "Destino", ""],
+    movimientos.slice().reverse().map((m) => [esc(m.id), fecha(m.fecha),
+      `<span class="eti eti--neutra">${esc(m.tipo)}</span>`,
+      esc(m.usuario?.nombre ?? m.usuario?.username),
+      esc(m.bodegaOrigen?.nombre ?? "—"),
+      esc(m.bodegaDestino?.nombre ?? "—"),
+      `<button class="boton boton--secundario boton--sm" data-ver="${esc(m.id)}">Ver detalle</button>`])
   ));
+
+  return buscador + resultado + lista;
 }
+
+async function cargarDetalle(id) {
+  const contenedor = document.getElementById("d-resultado");
+  if (!contenedor) return;
+
+  contenedor.innerHTML = `<div class="panel"><div style="padding:18px"><div class="esqueleto" style="width:60%"></div></div></div>`;
+
+  try {
+    const [movimiento, lineas] = await Promise.all([
+      pedir("/api/movimiento/" + id),
+      pedir("/api/detalle/movimiento/" + id)
+    ]);
+
+    const cabecera = `<div class="detalle-cabecera">
+      <div><span class="etiqueta-campo">Movimiento</span><strong>#${esc(movimiento.id)}</strong></div>
+      <div><span class="etiqueta-campo">Tipo</span><strong>${esc(movimiento.tipo)}</strong></div>
+      <div><span class="etiqueta-campo">Fecha</span><strong>${esc(fecha(movimiento.fecha))}</strong></div>
+      <div><span class="etiqueta-campo">Registró</span><strong>${esc(movimiento.usuario?.nombre ?? movimiento.usuario?.username ?? "—")}</strong></div>
+      <div><span class="etiqueta-campo">Origen</span><strong>${esc(movimiento.bodegaOrigen?.nombre ?? "—")}</strong></div>
+      <div><span class="etiqueta-campo">Destino</span><strong>${esc(movimiento.bodegaDestino?.nombre ?? "—")}</strong></div>
+    </div>`;
+
+    contenedor.innerHTML = panel(
+      "Detalle del movimiento #" + movimiento.id,
+      lineas.length + (lineas.length === 1 ? " producto movido" : " productos movidos"),
+      cabecera + tabla(["Producto", "Cantidad"],
+        lineas.map((d) => [esc(d.producto?.nombre),
+          `<span class="dato-num">${esc(d.cantidad)}</span>`]))
+    );
+  } catch (error) {
+    contenedor.innerHTML = panel("Detalle del movimiento", "No se pudo consultar",
+      `<div class="form-cuerpo">${mensaje(error.message, "error")}</div>`);
+  }
+}
+
+/* ---------- Solicitudes ---------- */
 
 async function vistaSolicitudes() {
   const pendientes = await pedir("/auth/pendientes");
@@ -205,7 +314,7 @@ async function vistaSolicitudes() {
   const filas = pendientes.map((u) => [
     esc(u.id), esc(u.username), esc(u.nombre), esc(u.telefono),
     `<span class="eti eti--${u.estado === "PENDIENTE" ? "pendiente" : u.estado === "ACTIVO" ? "activo" : "rechazado"}">${esc(u.estado)}</span>`,
-    `<span style="display:flex;gap:6px">
+    `<span class="acciones-fila">
        <button class="boton boton--primario boton--sm" data-aprobar="${esc(u.id)}">Aprobar</button>
        <button class="boton boton--peligro boton--sm" data-rechazar="${esc(u.id)}">Rechazar</button>
      </span>`
@@ -216,10 +325,11 @@ async function vistaSolicitudes() {
     tabla(["ID", "Usuario", "Nombre", "Teléfono", "Estado", "Acciones"], filas));
 }
 
+/* ---------- Auditoría ---------- */
+
 async function vistaAuditoria() {
   const registros = await pedir("/api/auditoria");
   const ultimos = registros.slice().reverse().slice(0, 100);
-
   const clase = { INSERT: "insert", UPDATE: "update", DELETE: "delete" };
 
   return panel("Registro de auditoría", registros.length + " eventos (mostrando los últimos 100)", tabla(
@@ -235,6 +345,8 @@ async function vistaAuditoria() {
   ));
 }
 
+/* ---------- Reporte ---------- */
+
 async function vistaReporte() {
   const reporte = await pedir("/api/reporte");
 
@@ -242,7 +354,7 @@ async function vistaReporte() {
   const totalValor = reporte.stockPorBodega.reduce((s, b) => s + Number(b.valorTotal || 0), 0);
 
   const metricas = `<div class="rejilla">
-    <div class="metrica"><span class="metrica__rotulo">Bodegas activas</span><span class="metrica__valor">${reporte.stockPorBodega.length}</span><span class="metrica__nota">con inventario registrado</span></div>
+    <div class="metrica"><span class="metrica__rotulo">Bodegas con inventario</span><span class="metrica__valor">${reporte.stockPorBodega.length}</span><span class="metrica__nota">de todas las registradas</span></div>
     <div class="metrica"><span class="metrica__rotulo">Unidades en total</span><span class="metrica__valor">${totalUnidades}</span><span class="metrica__nota">suma de todas las bodegas</span></div>
     <div class="metrica"><span class="metrica__rotulo">Valor del inventario</span><span class="metrica__valor">${dinero(totalValor)}</span><span class="metrica__nota">stock × precio</span></div>
   </div>`;
@@ -265,8 +377,8 @@ const VISTAS = {
   bodegas:     { titulo: "Bodegas",     desc: "Cada bodega con su ubicación, capacidad y encargado.", render: vistaBodegas },
   productos:   { titulo: "Productos",   desc: "Catálogo con el stock total y el precio de cada producto.", render: vistaProductos },
   inventario:  { titulo: "Inventario",  desc: "Cuántas unidades de cada producto hay en cada bodega.", render: vistaInventario },
-  movimiento:  { titulo: "Movimientos", desc: "Entradas, salidas y transferencias entre bodegas.", render: vistaMovimiento },
-  detalle:     { titulo: "Detalle",     desc: "Productos y cantidades de cada movimiento. Acá se mueve el stock.", render: vistaDetalle },
+  movimiento:  { titulo: "Registrar movimiento", desc: "Elegí qué producto entra, sale o se transfiere, y entre qué bodegas. Se registra todo junto.", render: vistaMovimiento },
+  detalle:     { titulo: "Detalle de un movimiento", desc: "Solo lectura: buscá un movimiento por ID y mirá qué se movió.", render: vistaDetalle },
   solicitudes: { titulo: "Solicitudes", desc: "Pedidos de registro esperando aprobación.", render: vistaSolicitudes, soloAdmin: true },
   auditoria:   { titulo: "Auditoría",   desc: "Cada cambio sobre la base, con su autor y los valores antes y después.", render: vistaAuditoria, soloAdmin: true },
   reporte:     { titulo: "Reporte",     desc: "Resumen general del inventario y de los productos más movidos.", render: vistaReporte, soloAdmin: true }
@@ -274,17 +386,13 @@ const VISTAS = {
 
 /* ================= Navegación ================= */
 
-let vistaActual = null;
-
-async function mostrar(nombre) {
-  const vista = VISTAS[nombre];
+async function mostrar(nombreVista, parametro) {
+  const vista = VISTAS[nombreVista];
   if (!vista) return;
   if (vista.soloAdmin && !esAdmin) return;
 
-  vistaActual = nombre;
-
   document.querySelectorAll(".barra__enlace").forEach((b) => {
-    if (b.dataset.vista === nombre) b.setAttribute("aria-current", "page");
+    if (b.dataset.vista === nombreVista) b.setAttribute("aria-current", "page");
     else b.removeAttribute("aria-current");
   });
 
@@ -295,14 +403,15 @@ async function mostrar(nombre) {
   contenedor.innerHTML = `<div class="panel"><div class="panel__cabecera"><div><h3>Cargando</h3><p>Un momento…</p></div></div><div style="padding:18px"><div class="esqueleto" style="width:60%"></div></div></div>`;
 
   try {
-    contenedor.innerHTML = await vista.render();
-    conectarFormularios(nombre);
+    contenedor.innerHTML = await vista.render(parametro);
+    conectarVista(nombreVista, parametro);
   } catch (error) {
-    contenedor.innerHTML = panel(vista.titulo, "No se pudo cargar", `<div style="padding:18px">${mensaje(error.message, "error")}</div>`);
+    contenedor.innerHTML = panel(vista.titulo, "No se pudo cargar",
+      `<div class="form-cuerpo">${mensaje(error.message, "error")}</div>`);
   }
 }
 
-/* ================= Formularios ================= */
+/* ================= Comportamiento ================= */
 
 function avisar(idAviso, texto, tipo) {
   const el = document.getElementById(idAviso);
@@ -312,9 +421,28 @@ function avisar(idAviso, texto, tipo) {
   el.className = tipo === "error" ? "error-campo" : "ayuda";
 }
 
-function conectarFormularios(nombre) {
+/* Muestra solo las bodegas que el tipo de movimiento necesita */
+function ajustarCamposPorTipo() {
+  const tipo = document.getElementById("m-tipo")?.value;
+  const campoOrigen = document.getElementById("c-origen");
+  const campoDestino = document.getElementById("c-destino");
+  if (!tipo || !campoOrigen || !campoDestino) return;
 
-  if (nombre === "bodegas" && esAdmin) {
+  campoOrigen.hidden = (tipo === "ENTRADA");
+  campoDestino.hidden = (tipo === "SALIDA");
+
+  const boton = document.getElementById("btn-registrar");
+  if (boton) {
+    boton.textContent = tipo === "ENTRADA" ? "Registrar entrada"
+      : tipo === "SALIDA" ? "Registrar salida"
+      : "Registrar transferencia";
+  }
+}
+
+function conectarVista(nombreVista) {
+
+  /* ----- Bodegas ----- */
+  if (nombreVista === "bodegas" && esAdmin) {
     document.getElementById("form-bodega").addEventListener("submit", async (e) => {
       e.preventDefault();
       const boton = e.target.querySelector("button");
@@ -338,7 +466,8 @@ function conectarFormularios(nombre) {
     });
   }
 
-  if (nombre === "productos" && esAdmin) {
+  /* ----- Productos ----- */
+  if (nombreVista === "productos" && esAdmin) {
     document.getElementById("form-producto").addEventListener("submit", async (e) => {
       e.preventDefault();
       const boton = e.target.querySelector("button");
@@ -362,54 +491,100 @@ function conectarFormularios(nombre) {
     });
   }
 
-  if (nombre === "movimiento") {
-    document.getElementById("form-movimiento").addEventListener("submit", async (e) => {
-      e.preventDefault();
-      const boton = e.target.querySelector("button");
-      boton.disabled = true;
-      avisar("m-aviso", "Registrando…");
+  /* ----- Movimiento: registra el movimiento Y su producto de una vez ----- */
+  if (nombreVista === "movimiento") {
+    const tipo = document.getElementById("m-tipo");
+    if (tipo) {
+      tipo.addEventListener("change", ajustarCamposPorTipo);
+      ajustarCamposPorTipo();
+    }
 
-      const origen = document.getElementById("m-origen").value;
-      const destino = document.getElementById("m-destino").value;
+    const form = document.getElementById("form-movimiento");
+    if (form) {
+      form.addEventListener("submit", async (e) => {
+        e.preventDefault();
 
-      const cuerpo = { tipo: document.getElementById("m-tipo").value };
-      if (origen) cuerpo.bodegaOrigenId = Number(origen);
-      if (destino) cuerpo.bodegaDestinoId = Number(destino);
+        const boton = document.getElementById("btn-registrar");
+        const tipoValor = document.getElementById("m-tipo").value;
+        const productoId = Number(document.getElementById("m-producto").value);
+        const cantidad = Number(document.getElementById("m-cantidad").value);
+        const origen = Number(document.getElementById("m-origen").value);
+        const destino = Number(document.getElementById("m-destino").value);
 
-      try {
-        await pedir("/api/movimiento", { method: "POST", body: JSON.stringify(cuerpo) });
-        mostrar("movimiento");
-      } catch (error) {
-        avisar("m-aviso", error.message, "error");
-        boton.disabled = false;
-      }
-    });
+        avisar("m-aviso", "");
+
+        if (!cantidad || cantidad < 1) {
+          avisar("m-aviso", "La cantidad tiene que ser mayor a cero.", "error");
+          return;
+        }
+        if (tipoValor === "TRANSFERENCIA" && origen === destino) {
+          avisar("m-aviso", "Elegí dos bodegas distintas para transferir.", "error");
+          return;
+        }
+
+        boton.disabled = true;
+        avisar("m-aviso", "Registrando…");
+
+        try {
+          const cuerpo = { tipo: tipoValor };
+          if (tipoValor !== "ENTRADA") cuerpo.bodegaOrigenId = origen;
+          if (tipoValor !== "SALIDA") cuerpo.bodegaDestinoId = destino;
+
+          const movimiento = await pedir("/api/movimiento", {
+            method: "POST", body: JSON.stringify(cuerpo)
+          });
+
+          try {
+            await pedir("/api/detalle", {
+              method: "POST",
+              body: JSON.stringify({ movimientoId: movimiento.id, productoId: productoId, cantidad: cantidad })
+            });
+          } catch (error) {
+            avisar("m-aviso",
+              `Se creó el movimiento #${movimiento.id}, pero el producto no se movió: ${error.message}`, "error");
+            boton.disabled = false;
+            return;
+          }
+
+          mostrar("movimiento");
+        } catch (error) {
+          avisar("m-aviso", error.message, "error");
+          boton.disabled = false;
+        }
+      });
+    }
+
+    conectarBotonesVer();
   }
 
-  if (nombre === "detalle") {
-    document.getElementById("form-detalle").addEventListener("submit", async (e) => {
-      e.preventDefault();
-      const boton = e.target.querySelector("button");
-      boton.disabled = true;
-      avisar("d-aviso", "Agregando…");
-      try {
-        await pedir("/api/detalle", {
-          method: "POST",
-          body: JSON.stringify({
-            movimientoId: Number(document.getElementById("d-movimiento").value),
-            productoId: Number(document.getElementById("d-producto").value),
-            cantidad: Number(document.getElementById("d-cantidad").value)
-          })
-        });
-        mostrar("detalle");
-      } catch (error) {
-        avisar("d-aviso", error.message, "error");
-        boton.disabled = false;
+  /* ----- Detalle: solo consulta ----- */
+  if (nombreVista === "detalle") {
+    const input = document.getElementById("d-id");
+    const boton = document.getElementById("btn-buscar-detalle");
+
+    const consultar = () => {
+      const id = Number(input.value);
+      if (!id || id < 1) {
+        document.getElementById("d-resultado").innerHTML =
+          `<div class="panel"><div class="form-cuerpo">${mensaje("Escribí un ID de movimiento válido.", "error")}</div></div>`;
+        return;
       }
-    });
+      cargarDetalle(id);
+    };
+
+    if (boton) boton.addEventListener("click", consultar);
+    if (input) {
+      input.addEventListener("keydown", (e) => { if (e.key === "Enter") { e.preventDefault(); consultar(); } });
+    }
+
+    conectarBotonesVer();
+
+    // Si se llegó desde "Ver detalle", se consulta solo
+    if (input && input.value) consultar();
   }
 
-  if (nombre === "solicitudes") {
+  /* ----- Solicitudes ----- */
+  if (nombreVista === "solicitudes") {
     document.querySelectorAll("[data-aprobar]").forEach((b) => {
       b.addEventListener("click", () => resolverSolicitud(b.dataset.aprobar, "aprobar", b));
     });
@@ -417,6 +592,12 @@ function conectarFormularios(nombre) {
       b.addEventListener("click", () => resolverSolicitud(b.dataset.rechazar, "rechazar", b));
     });
   }
+}
+
+function conectarBotonesVer() {
+  document.querySelectorAll("[data-ver]").forEach((b) => {
+    b.addEventListener("click", () => mostrar("detalle", b.dataset.ver));
+  });
 }
 
 async function resolverSolicitud(id, accion, boton) {
