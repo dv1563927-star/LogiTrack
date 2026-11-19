@@ -1,5 +1,6 @@
 package CampusLands.logitrack.security;
 
+import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -12,6 +13,7 @@ import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Configuration// Le digo a Spring que esta clase es de configuración
@@ -38,6 +40,41 @@ public class SecurityConfig {
                 .sessionManagement(session ->
                         session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
                 )
+
+                /*
+                 * Aquí le digo a Spring qué devolver cuando rechaza una petición.
+                 * Sin esto, Spring responde 403 en los dos casos y sin mensaje propio.
+                 *
+                 * 401 = no sé quién sos (falta el token, venció o es inválido).
+                 * 403 = sé quién sos, pero no tenés el rol.
+                 *
+                 * El JSON tiene el mismo formato que el del GlobalExceptionHandler.
+                 */
+                .exceptionHandling(errores -> errores
+
+                        // Falta el token, o venció / es inválido: 401
+                        .authenticationEntryPoint((request, response, excepcion) -> {
+                            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+                            response.setContentType("application/json;charset=UTF-8");
+                            response.getWriter().write(
+                                    "{\"timestamp\":\"" + LocalDateTime.now() + "\","
+                                            + "\"status\":401,"
+                                            + "\"message\":\"No autenticado: falta el token o es inválido\","
+                                            + "\"errorCode\":\"UNAUTHORIZED\"}");
+                        })
+
+                        // El token es válido pero el rol no alcanza: 403
+                        .accessDeniedHandler((request, response, excepcion) -> {
+                            response.setStatus(HttpServletResponse.SC_FORBIDDEN);
+                            response.setContentType("application/json;charset=UTF-8");
+                            response.getWriter().write(
+                                    "{\"timestamp\":\"" + LocalDateTime.now() + "\","
+                                            + "\"status\":403,"
+                                            + "\"message\":\"No tenés permisos para esta operación\","
+                                            + "\"errorCode\":\"FORBIDDEN\"}");
+                        })
+                )
+
                 // Aquí defino qué endpoints son públicos y cuáles no.
                 .authorizeHttpRequests(auth -> auth
                         // Permito acceso libre al login y al registro.
