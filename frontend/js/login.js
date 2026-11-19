@@ -39,9 +39,9 @@ function activarPestana(cual) {
     delete actual.dataset.saliendo;
 
     // El que entra viene desde el lado hacia el que se navega
-    destino.style.setProperty("--entra-desde", (haciaAbajo ? 10 : -10) + "px");
+    destino.style.setProperty("--entra-desde", (haciaAbajo ? 26 : -26) + "px");
     destino.hidden = false;
-  }, 130);
+  }, 180);
 }
 
 tabLogin.addEventListener("click", () => activarPestana("login"));
@@ -116,7 +116,7 @@ document.getElementById("form-login").addEventListener("submit", async (evento) 
     document.body.dataset.saliendo = "login";
     window.setTimeout(() => {
       window.location.href = "dashboard.html";
-    }, sinMovimiento.matches ? 0 : 280);
+    }, sinMovimiento.matches ? 0 : 380);
 
   } catch (e) {
     mostrarAviso("login-aviso", "login-aviso-texto",

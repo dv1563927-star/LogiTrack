@@ -51,7 +51,7 @@ function salir() {
 
   // La pantalla se apaga antes de volver al login
   document.body.dataset.saliendo = "sesion";
-  window.setTimeout(() => { window.location.href = "index.html"; }, 220);
+  window.setTimeout(() => { window.location.href = "index.html"; }, 300);
 }
 
 async function pedir(ruta, opciones = {}) {

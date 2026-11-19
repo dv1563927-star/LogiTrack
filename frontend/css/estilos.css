@@ -71,7 +71,7 @@
   --ease-in-out: cubic-bezier(0.77, 0, 0.175, 1);
   --dur-fast:  140ms;
   --dur:       180ms;
-  --dur-vista: 220ms;
+  --dur-vista: 320ms;
 }
 
 /* ---------- Base ---------- */
@@ -267,20 +267,22 @@ input[aria-invalid="true"]:focus { box-shadow: 0 0 0 3px rgba(115, 3, 13, .16); 
   border: 1px solid var(--line);
   border-radius: var(--r-lg);
   overflow: hidden;
-  transition:
-    opacity 260ms var(--ease-out),
-    transform 260ms var(--ease-out);
-  /* La tarjeta entra una vez, sin coreografia de carga */
-  @starting-style {
-    opacity: 0;
-    transform: translateY(10px);
-  }
+  /* Entrada de la tarjeta: se nota, es la primera pantalla */
+  animation: tarjeta-entra 460ms var(--ease-out) both;
 }
 
-/* Al iniciar sesion la tarjeta se apaga antes de navegar */
+@keyframes tarjeta-entra {
+  from { opacity: 0; transform: translateY(28px) scale(0.97); }
+}
+
+/* Al iniciar sesion la tarjeta sube y se apaga antes de navegar */
 body[data-saliendo] .acceso__panel {
+  animation: none;
   opacity: 0;
-  transform: scale(0.98);
+  transform: translateY(-28px) scale(0.95);
+  transition:
+    opacity 420ms var(--ease-out),
+    transform 420ms var(--ease-out);
 }
 
 .acceso__marca { padding: var(--s-6) var(--s-6) 0; display: grid; gap: var(--s-2); }
@@ -327,30 +329,38 @@ body[data-saliendo] .acceso__panel {
 .pestana:hover { color: var(--ink); }
 .pestana[aria-selected="true"] { color: var(--accent); border-bottom-color: var(--accent); }
 
+/* El contenido de la tarjeta entra escalonado */
+.acceso__marca { animation: sube-entra 420ms var(--ease-out) 90ms both; }
+.pestanas { animation: sube-entra 420ms var(--ease-out) 170ms both; }
+
+@keyframes sube-entra {
+  from { opacity: 0; transform: translateY(14px); }
+}
+
 .acceso__cuerpo {
   padding: var(--s-6);
   display: grid;
   gap: var(--s-4);
   transition:
-    opacity 200ms var(--ease-out),
-    transform 200ms var(--ease-out);
+    opacity 260ms var(--ease-out),
+    transform 260ms var(--ease-out);
   /* El panel que entra viene desde el lado hacia el que se navega */
   @starting-style {
     opacity: 0;
-    transform: translateY(var(--entra-desde, -8px));
+    transform: translateY(var(--entra-desde, -26px));
   }
 }
 
-/* El panel que sale se desvanece hacia el lado contrario (mas rapido) */
+/* El panel que sale se desvanece hacia el lado contrario */
 .acceso__cuerpo[data-saliendo="arriba"] {
   opacity: 0;
-  transform: translateY(-8px);
-  transition-duration: 130ms;
+  transform: translateY(-24px);
+  transition-duration: 180ms;
 }
 .acceso__cuerpo[data-saliendo="abajo"] {
   opacity: 0;
-  transform: translateY(8px);
-  transition-duration: 130ms;
+  transform: translateY(24px);
+  transition-duration: 180ms;
 }
 
 .acceso__pie {
@@ -397,11 +407,16 @@ body[data-saliendo] .acceso__panel {
   display: grid;
   grid-template-columns: 236px 1fr;
   min-height: 100dvh;
-  transition: opacity 220ms var(--ease-out);
+  transition:
+    opacity 320ms var(--ease-out),
+    transform 320ms var(--ease-out);
 }
 
-/* Al cerrar sesion la pantalla se apaga antes de volver al login */
-body[data-saliendo] .app { opacity: 0; }
+/* Al cerrar sesion la pantalla se apaga y se aleja antes de volver al login */
+body[data-saliendo] .app {
+  opacity: 0;
+  transform: scale(0.97);
+}
 
 /* ---------- Barra lateral (ground invertido) ---------- */
 .barra {
@@ -548,8 +563,8 @@ body[data-saliendo] .app { opacity: 0; }
 
 /* Al cambiar de vista el contenido entra en vez de teletransportarse,
    desde arriba o desde abajo segun hacia donde se navega */
-.vista { --vista-desde: 6px; }
-.vista[data-dir="arriba"] { --vista-desde: -6px; }
+.vista { --vista-desde: 18px; }
+.vista[data-dir="arriba"] { --vista-desde: -18px; }
 
 .vista > * {
   transition:
@@ -562,8 +577,8 @@ body[data-saliendo] .app { opacity: 0; }
 }
 
 /* Los paneles entran escalonados, no todos de golpe */
-.vista > *:nth-child(2) { transition-delay: 40ms; }
-.vista > *:nth-child(3) { transition-delay: 80ms; }
+.vista > *:nth-child(2) { transition-delay: 60ms; }
+.vista > *:nth-child(3) { transition-delay: 120ms; }
 
 /* ---------- Panel: una hairline, sin sombra ---------- */
 .panel {
@@ -874,9 +889,14 @@ td.num, th.num { text-align: right; font-family: var(--font-mono); font-variant-
 
   .boton:active:not(:disabled) { transform: none; }
 
-  /* Las transiciones de pestañas quedan solo como fundido */
+  /* Las entradas se quedan solo como fundido */
+  .acceso__panel,
+  .acceso__marca,
+  .pestanas { animation: none; }
+
   .acceso__cuerpo[data-saliendo] { transform: none; }
   body[data-saliendo] .acceso__panel { transform: none; }
+  body[data-saliendo] .app { transform: none; }
   .vista > *:nth-child(2),
   .vista > *:nth-child(3) { transition-delay: 0ms; }
 }
