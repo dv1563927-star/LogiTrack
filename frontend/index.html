@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>LogiTrack — Acceso</title>
+<link rel="stylesheet" href="css/estilos.css">
+</head>
+<body class="acceso">
+
+<main class="acceso__panel">
+
+  <div class="acceso__marca">
+    <div class="acceso__logo">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <path d="M3 9.5 12 4l9 5.5v5L12 20l-9-5.5z"/>
+        <path d="M3 9.5 12 15l9-5.5M12 15v5"/>
+      </svg>
+      LogiTrack
+    </div>
+    <h1>Control de bodegas</h1>
+    <p>Ingresá con tu cuenta para registrar y consultar movimientos de inventario.</p>
+  </div>
+
+  <div class="pestanas" role="tablist" aria-label="Acceso">
+    <button class="pestana" role="tab" id="tab-login" aria-selected="true" aria-controls="panel-login">Iniciar sesión</button>
+    <button class="pestana" role="tab" id="tab-registro" aria-selected="false" aria-controls="panel-registro" tabindex="-1">Solicitud de registro</button>
+  </div>
+
+  <!-- ---------------- LOGIN ---------------- -->
+  <section class="acceso__cuerpo" id="panel-login" role="tabpanel" aria-labelledby="tab-login">
+    <div class="aviso aviso--error" id="login-aviso" hidden><span id="login-aviso-texto"></span></div>
+
+    <form id="form-login" novalidate>
+      <div class="campo">
+        <label for="login-usuario">Usuario</label>
+        <input type="text" id="login-usuario" name="username" autocomplete="username"
+               placeholder="admin" required>
+      </div>
+
+      <div class="campo" style="margin-top:16px">
+        <label for="login-clave">Contraseña</label>
+        <input type="password" id="login-clave" name="password" autocomplete="current-password"
+               placeholder="••••••••" required>
+      </div>
+
+      <button type="submit" class="boton boton--primario boton--bloque" style="margin-top:22px" id="btn-login">
+        Ingresar
+      </button>
+    </form>
+  </section>
+
+  <!-- ---------------- REGISTRO ---------------- -->
+  <section class="acceso__cuerpo" id="panel-registro" role="tabpanel" aria-labelledby="tab-registro" hidden>
+    <div class="aviso aviso--exito" id="registro-exito" hidden><span id="registro-exito-texto"></span></div>
+    <div class="aviso aviso--error" id="registro-aviso" hidden><span id="registro-aviso-texto"></span></div>
+
+    <form id="form-registro" novalidate>
+      <div class="campo">
+        <label for="reg-usuario">Usuario</label>
+        <input type="text" id="reg-usuario" name="username" autocomplete="username"
+               placeholder="juan.perez" minlength="3" required>
+        <span class="ayuda">Mínimo 3 caracteres. No se puede repetir.</span>
+      </div>
+
+      <div class="campo" style="margin-top:16px">
+        <label for="reg-clave">Contraseña</label>
+        <input type="password" id="reg-clave" name="password" autocomplete="new-password"
+               placeholder="••••••••" minlength="6" required>
+      </div>
+
+      <div class="campo" style="margin-top:16px">
+        <label for="reg-clave2">Repetir contraseña</label>
+        <input type="password" id="reg-clave2" name="password2" autocomplete="new-password"
+               placeholder="••••••••" required>
+        <span class="error-campo" id="reg-error-clave" hidden>Las contraseñas no coinciden.</span>
+      </div>
+
+      <button type="submit" class="boton boton--primario boton--bloque" style="margin-top:22px" id="btn-registro">
+        Enviar solicitud
+      </button>
+
+      <p class="ayuda" style="margin-top:12px">
+        Tu solicitud queda pendiente hasta que un administrador la apruebe.
+        Todas las cuentas nuevas se crean con perfil de empleado.
+      </p>
+    </form>
+  </section>
+
+  <div class="acceso__pie">
+    API en <code>localhost:8080</code> · Swagger en <code>/swagger-ui.html</code>
+  </div>
+
+</main>
+
+<script src="js/login.js"></script>
+</body>
+</html>

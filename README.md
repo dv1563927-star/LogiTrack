@@ -222,6 +222,33 @@ El token dura **30 minutos**; al vencer hay que volver a hacer login.
 
 ---
 
+## Frontend
+
+Carpeta `frontend/` con HTML, CSS y JavaScript puro (sin frameworks).
+
+**Cómo abrirlo:** hay que servirlo en el puerto **5500**, que es el que el backend tiene
+habilitado en su configuración de CORS.
+
+Con Visual Studio Code: abrir `frontend/index.html` con la extensión **Live Server**.
+
+O por consola, desde la carpeta `frontend/`:
+
+```bash
+python -m http.server 5500
+```
+
+Después abrir `http://localhost:5500`.
+
+| Página | Contenido |
+|---|---|
+| `index.html` | Login y solicitud de registro (dos pestañas) |
+| `dashboard.html` | Panel con las secciones habilitadas según el rol |
+
+El panel se adapta al rol: el **ADMIN** ve todo, incluida la aprobación de solicitudes,
+la auditoría y el reporte; el **EMPLEADO** solo ve movimientos y detalle.
+
+---
+
 ## Auditoría automática
 
 Cada operación de escritura sobre `Bodega`, `Producto`, `Inventario`, `Movimiento` y
