@@ -782,6 +782,14 @@ document.getElementById("usuario-nombre").textContent = nombre || usuario || "â€
 document.getElementById("usuario-rol").textContent = rol || "â€”";
 document.getElementById("inicial").textContent = (nombre || usuario || "?").charAt(0).toUpperCase();
 
+// Barra de estado: fecha y hora de la sesion
+const estadoFecha = document.getElementById("estado-fecha");
+if (estadoFecha) {
+  estadoFecha.textContent = new Date().toLocaleString("es-CO", {
+    day: "2-digit", month: "2-digit", year: "numeric", hour: "2-digit", minute: "2-digit"
+  });
+}
+
 if (!esAdmin) {
   document.querySelectorAll(".solo-admin").forEach((el) => el.remove());
 }
