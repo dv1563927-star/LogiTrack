@@ -317,22 +317,8 @@ async function vistaMovimiento() {
 
 /* ---------- DETALLE: solo lectura ---------- */
 
-async function vistaDetalle(idInicial) {
+async function vistaDetalle() {
   const movimientos = await pedir("/api/movimiento");
-  const idBuscado = idInicial ? String(idInicial) : "";
-
-  const buscador = panel("Buscar un movimiento", "Escribí el ID o tocá «Ver detalle» en la lista de abajo", `
-    <div class="form-cuerpo">
-      <div class="form-fila">
-        <div class="campo">
-          <label for="d-id">ID del movimiento</label>
-          <input id="d-id" type="number" min="1" placeholder="1" value="${esc(idBuscado)}">
-        </div>
-        <div class="campo" style="grid-column: span 1">
-          <button type="button" class="boton boton--primario" id="btn-buscar-detalle">Consultar</button>
-        </div>
-      </div>
-    </div>`);
 
   const resultado = `<div id="d-resultado">${
     movimientos.length
@@ -351,7 +337,7 @@ async function vistaDetalle(idInicial) {
       `<button class="boton boton--secundario boton--sm" data-ver="${esc(m.id)}">Ver detalle</button>`])
   ));
 
-  return buscador + resultado + lista;
+  return resultado + lista;
 }
 
 async function cargarDetalle(id) {
@@ -382,6 +368,10 @@ async function cargarDetalle(id) {
         lineas.map((d) => [esc(d.producto?.nombre),
           `<span class="dato-num">${esc(d.cantidad)}</span>`]))
     );
+
+    // Llevo la vista al detalle para que no quede fuera de pantalla
+    const moverse = window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth";
+    contenedor.scrollIntoView({ behavior: moverse, block: "nearest" });
   } catch (error) {
     contenedor.innerHTML = panel("Detalle del movimiento", "No se pudo consultar",
       `<div class="form-cuerpo">${mensaje(error.message, "error")}</div>`);
@@ -460,7 +450,7 @@ const VISTAS = {
   productos:   { titulo: "Productos",   desc: "Catálogo con el stock total y el precio de cada producto.", render: vistaProductos },
   inventario:  { titulo: "Inventario",  desc: "Elegí una bodega del menú y mirá qué productos tiene.", render: vistaInventario },
   movimiento:  { titulo: "Registrar movimiento", desc: "Elegí qué producto entra, sale o se transfiere, y entre qué bodegas. Se registra todo junto.", render: vistaMovimiento },
-  detalle:     { titulo: "Detalle de un movimiento", desc: "Solo lectura: buscá un movimiento por ID y mirá qué se movió.", render: vistaDetalle },
+  detalle:     { titulo: "Detalle de un movimiento", desc: "Solo lectura: tocá «Ver detalle» en un movimiento y mirá qué se movió.", render: vistaDetalle },
   solicitudes: { titulo: "Solicitudes", desc: "Pedidos de registro esperando aprobación.", render: vistaSolicitudes, soloAdmin: true },
   auditoria:   { titulo: "Auditoría",   desc: "Cada cambio sobre la base, con su autor y los valores antes y después.", render: vistaAuditoria, soloAdmin: true },
   reporte:     { titulo: "Reporte",     desc: "Resumen general del inventario y de los productos más movidos.", render: vistaReporte, soloAdmin: true }
@@ -574,7 +564,7 @@ function actualizarContextoMovimiento() {
   caja.className = "contexto-movimiento" + (alerta ? " contexto-movimiento--alerta" : "");
 }
 
-function conectarVista(nombreVista) {
+function conectarVista(nombreVista, parametro) {
 
   /* ----- Inventario: menú de bodegas ----- */
   if (nombreVista === "inventario") {
@@ -736,28 +726,10 @@ function conectarVista(nombreVista) {
 
   /* ----- Detalle: solo consulta ----- */
   if (nombreVista === "detalle") {
-    const input = document.getElementById("d-id");
-    const boton = document.getElementById("btn-buscar-detalle");
-
-    const consultar = () => {
-      const id = Number(input.value);
-      if (!id || id < 1) {
-        document.getElementById("d-resultado").innerHTML =
-          `<div class="panel"><div class="form-cuerpo">${mensaje("Escribí un ID de movimiento válido.", "error")}</div></div>`;
-        return;
-      }
-      cargarDetalle(id);
-    };
-
-    if (boton) boton.addEventListener("click", consultar);
-    if (input) {
-      input.addEventListener("keydown", (e) => { if (e.key === "Enter") { e.preventDefault(); consultar(); } });
-    }
-
     conectarBotonesVer();
 
-    // Si se llegó desde "Ver detalle", se consulta solo
-    if (input && input.value) consultar();
+    // Si se llegó desde "Ver detalle", se carga ese movimiento
+    if (parametro) cargarDetalle(Number(parametro));
   }
 
   /* ----- Solicitudes ----- */
