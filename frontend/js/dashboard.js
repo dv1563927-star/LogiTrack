@@ -89,9 +89,9 @@ function mensaje(texto, tipo) {
   return `<div class="aviso aviso--${tipo}">${esc(texto)}</div>`;
 }
 
-function opcionesBodega(bodegas) {
+function opcionesBodega(bodegas, seleccionadoId) {
   return bodegas.map((b) =>
-    `<option value="${esc(b.id)}">${esc(b.nombre)} — ${esc(b.ubicacion)}</option>`).join("");
+    `<option value="${esc(b.id)}"${b.id === seleccionadoId ? " selected" : ""}>${esc(b.nombre)} — ${esc(b.ubicacion)}</option>`).join("");
 }
 
 function opcionesProducto(productos) {
@@ -272,7 +272,7 @@ async function vistaMovimiento() {
 
         <div class="campo" id="c-destino">
           <label for="m-destino">A qué bodega entra</label>
-          <select id="m-destino">${opcionesBodega(bodegas)}</select>
+          <select id="m-destino">${opcionesBodega(bodegas, bodegas.length > 1 ? bodegas[1].id : bodegas[0].id)}</select>
         </div>
 
         <div class="campo">
@@ -547,19 +547,25 @@ function actualizarContextoMovimiento() {
 
   } else if (tipo === "SALIDA") {
     const disponibles = disponibleEn(origenId, productoId);
-    texto = `En <strong>${esc(origen?.nombre ?? "la bodega")}</strong> hay <strong>${disponibles}</strong> de ${nombreProducto}. Podés sacar hasta ${disponibles}.`;
+    texto = `En <strong>${esc(origen?.nombre ?? "la bodega")}</strong> hay <strong>${disponibles}</strong> de ${nombreProducto}.`;
     if (cantidad > disponibles) {
       alerta = true;
-      texto += ` Te pasaste por ${cantidad - disponibles}.`;
+      texto += ` No alcanza: te pasás por ${cantidad - disponibles}.`;
     }
 
   } else {
-    const enOrigen = disponibleEn(origenId, productoId);
-    const enDestino = disponibleEn(destinoId, productoId);
-    texto = `En <strong>${esc(origen?.nombre ?? "el origen")}</strong> hay <strong>${enOrigen}</strong> de ${nombreProducto}. En <strong>${esc(destino?.nombre ?? "el destino")}</strong> hay ${enDestino}.`;
-    if (cantidad > enOrigen) {
+    // TRANSFERENCIA
+    if (origenId === destinoId) {
       alerta = true;
-      texto += ` No alcanza: faltan ${cantidad - enOrigen}.`;
+      texto = `Elegí dos bodegas distintas: ahora las dos son <strong>${esc(origen?.nombre ?? "la misma bodega")}</strong>.`;
+    } else {
+      const enOrigen = disponibleEn(origenId, productoId);
+      const enDestino = disponibleEn(destinoId, productoId);
+      texto = `Origen <strong>${esc(origen?.nombre ?? "—")}</strong>: <strong>${enOrigen}</strong> de ${nombreProducto}. Destino <strong>${esc(destino?.nombre ?? "—")}</strong>: ${enDestino}.`;
+      if (cantidad > enOrigen) {
+        alerta = true;
+        texto += ` No alcanza: faltan ${cantidad - enOrigen}.`;
+      }
     }
   }
 
