@@ -1,5 +1,6 @@
 package CampusLands.logitrack.repository;
 
+import CampusLands.logitrack.model.EstadoUsuario;
 import CampusLands.logitrack.model.Usuario;
 import org.springframework.data.jpa.repository.JpaRepository;
 
@@ -9,5 +10,8 @@ public interface UsuarioRepository extends JpaRepository<Usuario, Long>{
 
     List<Usuario> findByUsername(String username);
     boolean existsByUsername(String username);
+
+    // Para listar las solicitudes de registro pendientes
+    List<Usuario> findByEstado(EstadoUsuario estado);
 
 }

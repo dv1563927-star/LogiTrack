@@ -25,4 +25,9 @@ public class Usuario {
     @Column(nullable = false, length = 20)
     private Rol rol;
 
+    // Un usuario nuevo entra como PENDIENTE hasta que el admin lo apruebe
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false, length = 20)
+    private EstadoUsuario estado;
+
 }

@@ -9,7 +9,7 @@ public class UsuarioMapper {
 
     public UsuarioDtoResponse entityToDto(Usuario usuario) {
         if (usuario == null) return null;
-        return new UsuarioDtoResponse(usuario.getId(), usuario.getUsername(), usuario.getRol());
+        return new UsuarioDtoResponse(usuario.getId(), usuario.getUsername(), usuario.getRol(), usuario.getEstado());
     }
 
 }
