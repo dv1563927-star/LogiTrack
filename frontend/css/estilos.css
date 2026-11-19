@@ -373,6 +373,13 @@ input[aria-invalid="true"]:focus { box-shadow: 0 0 0 3px rgba(156, 42, 33, .14);
   flex-direction: column;
   padding: var(--s-5) var(--s-3);
   gap: var(--s-1);
+  /* Queda pegada a la ventana: el perfil y "cerrar sesion" se ven siempre,
+     sin importar cuanto mida la pagina de la derecha. */
+  position: sticky;
+  top: 0;
+  align-self: start;
+  height: 100dvh;
+  overflow-y: auto;
 }
 
 .barra__marca {
@@ -773,6 +780,11 @@ td.num, th.num { text-align: right; font-family: var(--font-mono); font-variant-
     padding: var(--s-2) var(--s-3);
     overflow-x: auto;
     gap: 2px;
+    /* En el telefono la barra pasa arriba y tambien queda fija */
+    position: sticky;
+    top: 0;
+    height: auto;
+    z-index: 20;
   }
   .barra__marca { padding: 0 var(--s-4) 0 var(--s-1); }
   .barra__marca span { display: none; }
