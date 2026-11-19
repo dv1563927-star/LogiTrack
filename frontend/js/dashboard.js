@@ -96,7 +96,7 @@ function opcionesBodega(bodegas) {
 
 function opcionesProducto(productos) {
   return productos.map((p) =>
-    `<option value="${esc(p.id)}">${esc(p.nombre)} — ${esc(p.stock)} en bodegas</option>`).join("");
+    `<option value="${esc(p.id)}">${esc(p.nombre)}</option>`).join("");
 }
 
 /* ================= Vistas ================= */
@@ -216,10 +216,35 @@ function renderInventarioBodega(id) {
 
 /* ---------- MOVIMIENTO: acá se registra todo ---------- */
 
+/* Datos que necesita el formulario para mostrar la disponibilidad real */
+let movBodegas = [];
+let movProductos = [];
+let movDisponible = {};   // { idBodega: { idProducto: cantidad } }
+
+function disponibleEn(bodegaId, productoId) {
+  const fila = movDisponible[bodegaId];
+  if (!fila) return 0;
+  return fila[productoId] || 0;
+}
+
 async function vistaMovimiento() {
-  const [bodegas, productos, movimientos] = await Promise.all([
-    pedir("/api/bodega"), pedir("/api/producto"), pedir("/api/movimiento")
+  const [bodegas, productos, movimientos, inventario] = await Promise.all([
+    pedir("/api/bodega"), pedir("/api/producto"), pedir("/api/movimiento"), pedir("/api/inventario")
   ]);
+
+  movBodegas = bodegas;
+  movProductos = productos;
+
+  // Cuánto hay de cada producto en cada bodega
+  movDisponible = {};
+  for (const fila of inventario) {
+    const idBodega = fila.bodega?.id;
+    const idProducto = fila.producto?.id;
+    if (idBodega === null || idBodega === undefined) continue;
+    if (idProducto === null || idProducto === undefined) continue;
+    if (!movDisponible[idBodega]) movDisponible[idBodega] = {};
+    movDisponible[idBodega][idProducto] = fila.cantidad || 0;
+  }
 
   const sinBodegas = bodegas.length === 0 || productos.length === 0;
 
@@ -260,6 +285,8 @@ async function vistaMovimiento() {
           <input id="m-cantidad" type="number" min="1" value="1" required>
         </div>
       </div>
+
+      <div id="m-contexto" class="contexto-movimiento" hidden></div>
 
       <div class="form-pie">
         <button type="submit" class="boton boton--primario" id="btn-registrar">Registrar movimiento</button>
@@ -494,6 +521,53 @@ function ajustarCamposPorTipo() {
   }
 }
 
+/* Muestra, según el tipo y la bodega elegida, cuánto hay realmente disponible */
+function actualizarContextoMovimiento() {
+  const caja = document.getElementById("m-contexto");
+  if (!caja) return;
+
+  const tipo = document.getElementById("m-tipo").value;
+  const productoId = Number(document.getElementById("m-producto").value);
+  const origenId = Number(document.getElementById("m-origen").value);
+  const destinoId = Number(document.getElementById("m-destino").value);
+  const cantidad = Number(document.getElementById("m-cantidad").value) || 0;
+
+  const producto = movProductos.find((p) => p.id === productoId);
+  const origen = movBodegas.find((b) => b.id === origenId);
+  const destino = movBodegas.find((b) => b.id === destinoId);
+  if (!producto) { caja.hidden = true; return; }
+
+  const nombreProducto = `<strong>${esc(producto.nombre)}</strong>`;
+  let texto = "";
+  let alerta = false;
+
+  if (tipo === "ENTRADA") {
+    const actuales = disponibleEn(destinoId, productoId);
+    texto = `Entran <strong>${cantidad}</strong> de ${nombreProducto} a <strong>${esc(destino?.nombre ?? "la bodega")}</strong>. Ahí hay ${actuales} hoy.`;
+
+  } else if (tipo === "SALIDA") {
+    const disponibles = disponibleEn(origenId, productoId);
+    texto = `En <strong>${esc(origen?.nombre ?? "la bodega")}</strong> hay <strong>${disponibles}</strong> de ${nombreProducto}. Podés sacar hasta ${disponibles}.`;
+    if (cantidad > disponibles) {
+      alerta = true;
+      texto += ` Te pasaste por ${cantidad - disponibles}.`;
+    }
+
+  } else {
+    const enOrigen = disponibleEn(origenId, productoId);
+    const enDestino = disponibleEn(destinoId, productoId);
+    texto = `En <strong>${esc(origen?.nombre ?? "el origen")}</strong> hay <strong>${enOrigen}</strong> de ${nombreProducto}. En <strong>${esc(destino?.nombre ?? "el destino")}</strong> hay ${enDestino}.`;
+    if (cantidad > enOrigen) {
+      alerta = true;
+      texto += ` No alcanza: faltan ${cantidad - enOrigen}.`;
+    }
+  }
+
+  caja.innerHTML = texto;
+  caja.hidden = false;
+  caja.className = "contexto-movimiento" + (alerta ? " contexto-movimiento--alerta" : "");
+}
+
 function conectarVista(nombreVista) {
 
   /* ----- Inventario: menú de bodegas ----- */
@@ -568,10 +642,23 @@ function conectarVista(nombreVista) {
   /* ----- Movimiento: registra el movimiento Y su producto de una vez ----- */
   if (nombreVista === "movimiento") {
     const tipo = document.getElementById("m-tipo");
+
     if (tipo) {
-      tipo.addEventListener("change", ajustarCamposPorTipo);
+      tipo.addEventListener("change", () => {
+        ajustarCamposPorTipo();
+        actualizarContextoMovimiento();
+      });
       ajustarCamposPorTipo();
     }
+
+    // Al cambiar cualquier campo se actualiza la disponibilidad que se muestra
+    ["m-tipo", "m-origen", "m-destino", "m-producto", "m-cantidad"].forEach((id) => {
+      const campo = document.getElementById(id);
+      if (!campo) return;
+      campo.addEventListener("input", actualizarContextoMovimiento);
+      campo.addEventListener("change", actualizarContextoMovimiento);
+    });
+    actualizarContextoMovimiento();
 
     const form = document.getElementById("form-movimiento");
     if (form) {
@@ -594,6 +681,16 @@ function conectarVista(nombreVista) {
         if (tipoValor === "TRANSFERENCIA" && origen === destino) {
           avisar("m-aviso", "Elegí dos bodegas distintas para transferir.", "error");
           return;
+        }
+
+        // No se puede mover más de lo que hay en la bodega de origen
+        if (tipoValor !== "ENTRADA") {
+          const disponibles = disponibleEn(origen, productoId);
+          if (cantidad > disponibles) {
+            avisar("m-aviso",
+              `En esa bodega hay ${disponibles} unidades de ese producto. No podés mover ${cantidad}.`, "error");
+            return;
+          }
         }
 
         boton.disabled = true;

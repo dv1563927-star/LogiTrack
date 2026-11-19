@@ -729,6 +729,22 @@ td.num, th.num { text-align: right; font-family: var(--font-mono); font-variant-
 
 .form-cuerpo { padding: var(--s-5); }
 
+/* Disponibilidad real que se muestra bajo el formulario de movimiento */
+.contexto-movimiento {
+  margin-top: var(--s-4);
+  padding: var(--s-3) var(--s-4);
+  border-radius: var(--r-sm);
+  background: var(--surface);
+  font-size: var(--t-small);
+  color: var(--muted);
+  line-height: 1.55;
+}
+
+.contexto-movimiento strong { color: var(--ink); font-weight: 500; }
+
+.contexto-movimiento--alerta { background: var(--bad-bg); color: var(--bad); }
+.contexto-movimiento--alerta strong { color: var(--bad); }
+
 /* ---------- Cargando ---------- */
 .esqueleto {
   position: relative;
