@@ -106,11 +106,11 @@ async function vistaBodegas() {
 
   const formulario = esAdmin ? panel("Nueva bodega", "Todos los campos son obligatorios", `
     <form id="form-bodega" class="form-cuerpo">
-      <div class="form-fila">
-        <div class="campo"><label for="b-nombre">Nombre</label><input id="b-nombre" required placeholder="Bodega Occidente"></div>
-        <div class="campo"><label for="b-ubicacion">Ubicación</label><input id="b-ubicacion" required placeholder="Pereira"></div>
-        <div class="campo"><label for="b-capacidad">Capacidad</label><input id="b-capacidad" type="number" min="1" required placeholder="1500"></div>
-        <div class="campo"><label for="b-encargado">Encargado</label><input id="b-encargado" required placeholder="Ana Torres"></div>
+      <div class="form-fila form-fila--dos">
+        <div class="campo"><label for="b-nombre">Nombre</label><input type="text" id="b-nombre" required placeholder="Bodega Occidente"></div>
+        <div class="campo"><label for="b-ubicacion">Ubicación</label><input type="text" id="b-ubicacion" required placeholder="Pereira"></div>
+        <div class="campo"><label for="b-capacidad">Capacidad</label><input type="number" id="b-capacidad" min="1" required placeholder="1500"></div>
+        <div class="campo"><label for="b-encargado">Encargado</label><input type="text" id="b-encargado" required placeholder="Ana Torres"></div>
       </div>
       <div class="form-pie">
         <button type="submit" class="boton boton--primario">Guardar bodega</button>
@@ -129,10 +129,10 @@ async function vistaProductos() {
 
   const formulario = esAdmin ? panel("Nuevo producto", "Nace sin stock: después se le asigna con movimientos en cada bodega", `
     <form id="form-producto" class="form-cuerpo">
-      <div class="form-fila">
-        <div class="campo"><label for="p-nombre">Nombre</label><input id="p-nombre" required placeholder="Monitor 27"></div>
-        <div class="campo"><label for="p-categoria">Categoría</label><input id="p-categoria" required placeholder="Pantallas"></div>
-        <div class="campo"><label for="p-precio">Precio</label><input id="p-precio" type="number" min="1" step="0.01" required placeholder="450000"></div>
+      <div class="form-fila form-fila--dos">
+        <div class="campo"><label for="p-nombre">Nombre</label><input type="text" id="p-nombre" required placeholder="Monitor 27"></div>
+        <div class="campo"><label for="p-categoria">Categoría</label><input type="text" id="p-categoria" required placeholder="Pantallas"></div>
+        <div class="campo"><label for="p-precio">Precio</label><input type="number" id="p-precio" min="1" step="0.01" required placeholder="450000"></div>
       </div>
       <div class="form-pie">
         <button type="submit" class="boton boton--primario">Guardar producto</button>
