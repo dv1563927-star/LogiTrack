@@ -664,6 +664,49 @@ td.num, th.num { text-align: right; font-family: var(--font-mono); font-variant-
 /* Botones de accion dentro de una celda de tabla */
 .acciones-fila { display: flex; gap: var(--s-2); }
 
+/* ---------- Menú de bodegas (inventario) ---------- */
+.menu-bodegas {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--s-2);
+  padding: var(--s-4) var(--s-5);
+}
+
+.bodega-opcion {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--s-3);
+  height: 40px;
+  padding: 0 var(--s-4);
+  border: 1px solid var(--line-fuerte);
+  border-radius: var(--r-sm);
+  background: #fff;
+  color: var(--ink);
+  font-size: var(--t-small);
+  font-weight: 500;
+  cursor: pointer;
+  transition:
+    border-color var(--dur) var(--ease-out),
+    background-color var(--dur) var(--ease-out),
+    color var(--dur) var(--ease-out);
+}
+
+.bodega-opcion:hover { border-color: var(--ink); }
+
+.bodega-opcion__total {
+  font-family: var(--font-mono);
+  font-size: var(--t-label);
+  color: var(--muted);
+}
+
+/* La bodega elegida: es la seleccion actual, se marca con el acento */
+.bodega-opcion[aria-current="true"] {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: var(--accent-ink);
+}
+.bodega-opcion[aria-current="true"] .bodega-opcion__total { color: rgba(255, 255, 255, .82); }
+
 /* ---------- Formularios en fila ---------- */
 .form-fila {
   display: grid;

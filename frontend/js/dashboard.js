@@ -149,14 +149,70 @@ async function vistaProductos() {
   ));
 }
 
-async function vistaInventario() {
-  const filas = await pedir("/api/inventario");
+/* ---------- INVENTARIO: menú de bodegas ---------- */
 
-  return panel("Stock por bodega", filas.length + " registros", tabla(
-    ["Bodega", "Producto", "Cantidad"],
-    filas.map((f) => [esc(f.bodega?.nombre), esc(f.producto?.nombre),
-      `<span class="dato-num">${esc(f.cantidad)}</span>`])
-  ));
+let bodegaActual = null;
+let bodegasCache = [];
+let inventarioPorBodega = {};
+
+async function vistaInventario() {
+  const [bodegas, filas] = await Promise.all([pedir("/api/bodega"), pedir("/api/inventario")]);
+
+  bodegasCache = bodegas;
+
+  // El inventario se agrupa por bodega una sola vez
+  inventarioPorBodega = {};
+  for (const fila of filas) {
+    const id = fila.bodega?.id;
+    if (id === null || id === undefined) continue;
+    if (!inventarioPorBodega[id]) inventarioPorBodega[id] = [];
+    inventarioPorBodega[id].push(fila);
+  }
+
+  if (!bodegas.length) {
+    return panel("Inventario", "Sin bodegas registradas",
+      `<div class="celda-vacia"><strong>No hay bodegas todavía</strong>Creá una desde la sección Bodegas.</div>`);
+  }
+
+  if (bodegaActual === null || !bodegas.some((b) => b.id === bodegaActual)) {
+    bodegaActual = bodegas[0].id;
+  }
+
+  const menu = bodegas.map((b) => {
+    const total = (inventarioPorBodega[b.id] || []).reduce((suma, f) => suma + (f.cantidad || 0), 0);
+    return `<button class="bodega-opcion" data-bodega="${b.id}"${b.id === bodegaActual ? ' aria-current="true"' : ""}>
+      <span>${esc(b.nombre)}</span>
+      <span class="bodega-opcion__total">${total} u.</span>
+    </button>`;
+  }).join("");
+
+  return `<div class="panel">
+      <div class="panel__cabecera"><div><h3>Elegí una bodega</h3><p>El número es el total de unidades que tiene</p></div></div>
+      <div class="menu-bodegas">${menu}</div>
+    </div>
+    <div id="inventario-bodega"></div>`;
+}
+
+function renderInventarioBodega(id) {
+  const contenedor = document.getElementById("inventario-bodega");
+  if (!contenedor) return;
+
+  const bodega = bodegasCache.find((b) => b.id === id);
+  const filas = (inventarioPorBodega[id] || []).slice();
+  const total = filas.reduce((suma, f) => suma + (f.cantidad || 0), 0);
+
+  const subtitulo = bodega
+    ? `${bodega.ubicacion} · ${filas.length} ${filas.length === 1 ? "producto" : "productos"} · ${total} unidades`
+    : "";
+
+  contenedor.innerHTML = panel(
+    bodega ? bodega.nombre : "Bodega",
+    subtitulo,
+    filas.length
+      ? tabla(["Producto", "Cantidad"],
+          filas.map((f) => [esc(f.producto?.nombre), `<span class="dato-num">${esc(f.cantidad)}</span>`]))
+      : `<div class="celda-vacia"><strong>Sin stock registrado</strong>Esta bodega todavía no tiene productos.</div>`
+  );
 }
 
 /* ---------- MOVIMIENTO: acá se registra todo ---------- */
@@ -376,7 +432,7 @@ async function vistaReporte() {
 const VISTAS = {
   bodegas:     { titulo: "Bodegas",     desc: "Cada bodega con su ubicación, capacidad y encargado.", render: vistaBodegas },
   productos:   { titulo: "Productos",   desc: "Catálogo con el stock total y el precio de cada producto.", render: vistaProductos },
-  inventario:  { titulo: "Inventario",  desc: "Cuántas unidades de cada producto hay en cada bodega.", render: vistaInventario },
+  inventario:  { titulo: "Inventario",  desc: "Elegí una bodega del menú y mirá qué productos tiene.", render: vistaInventario },
   movimiento:  { titulo: "Registrar movimiento", desc: "Elegí qué producto entra, sale o se transfiere, y entre qué bodegas. Se registra todo junto.", render: vistaMovimiento },
   detalle:     { titulo: "Detalle de un movimiento", desc: "Solo lectura: buscá un movimiento por ID y mirá qué se movió.", render: vistaDetalle },
   solicitudes: { titulo: "Solicitudes", desc: "Pedidos de registro esperando aprobación.", render: vistaSolicitudes, soloAdmin: true },
@@ -440,6 +496,26 @@ function ajustarCamposPorTipo() {
 }
 
 function conectarVista(nombreVista) {
+
+  /* ----- Inventario: menú de bodegas ----- */
+  if (nombreVista === "inventario") {
+    const pintar = () => {
+      document.querySelectorAll("[data-bodega]").forEach((boton) => {
+        if (Number(boton.dataset.bodega) === bodegaActual) boton.setAttribute("aria-current", "true");
+        else boton.removeAttribute("aria-current");
+      });
+      renderInventarioBodega(bodegaActual);
+    };
+
+    document.querySelectorAll("[data-bodega]").forEach((boton) => {
+      boton.addEventListener("click", () => {
+        bodegaActual = Number(boton.dataset.bodega);
+        pintar();
+      });
+    });
+
+    pintar();
+  }
 
   /* ----- Bodegas ----- */
   if (nombreVista === "bodegas" && esAdmin) {
