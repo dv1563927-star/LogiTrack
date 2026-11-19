@@ -175,13 +175,13 @@ async function vistaMovimiento() {
       ? `<div class="form-cuerpo">${mensaje("Primero necesitás al menos una bodega y un producto.", "alerta")}</div>`
       : `
     <form id="form-movimiento" class="form-cuerpo">
-      <div class="form-fila">
+      <div class="form-fila form-fila--movimiento">
         <div class="campo ancho-2">
           <label for="m-tipo">Qué va a pasar</label>
           <select id="m-tipo" data-tipo>
-            <option value="ENTRADA">Entrada — ingresa mercancía a una bodega</option>
-            <option value="SALIDA">Salida — sale mercancía de una bodega</option>
-            <option value="TRANSFERENCIA">Transferencia — pasa de una bodega a otra</option>
+            <option value="ENTRADA">Entrada</option>
+            <option value="SALIDA">Salida</option>
+            <option value="TRANSFERENCIA">Transferencia</option>
           </select>
         </div>
 
@@ -200,7 +200,7 @@ async function vistaMovimiento() {
           <select id="m-producto">${opcionesProducto(productos)}</select>
         </div>
 
-        <div class="campo">
+        <div class="campo campo--cantidad">
           <label for="m-cantidad">Cantidad</label>
           <input id="m-cantidad" type="number" min="1" value="1" required>
         </div>
