@@ -334,9 +334,33 @@ Todas las respuestas de error tienen la misma forma:
 | Código | Cuándo |
 |---|---|
 | `400` | Datos inválidos o regla de negocio incumplida |
-| `403` | Token inválido, ausente o sin el rol necesario |
+| `401` | Falta el token, venció o es inválido |
+| `403` | El token es válido pero el rol no alcanza |
 | `404` | Ruta no encontrada |
 | `500` | Error interno |
 
 Los errores de validación (campos mal formados) devuelven además un mapa `errors`
 con el detalle por campo.
+
+---
+
+## Capturas de la aplicación
+
+**Inicio de sesión**
+
+![Pantalla de inicio de sesión](manual/capturas/login.png)
+
+**Solicitudes de registro, a la espera de aprobación**
+
+![Panel de solicitudes pendientes](manual/capturas/solicitudes.png)
+
+**Reporte general del inventario**
+
+![Reporte general del sistema](manual/capturas/reporte.png)
+
+**API documentada y protegida en Swagger**
+
+![Endpoints de autenticación en Swagger](manual/capturas/swagger-auth.png)
+
+> El paso a paso de cada sección está en el
+> [manual de usuario](manual/manual-de-usuario.pdf).
