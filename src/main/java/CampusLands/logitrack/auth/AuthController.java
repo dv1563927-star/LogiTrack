@@ -8,6 +8,7 @@ import CampusLands.logitrack.model.Rol;
 import CampusLands.logitrack.model.Usuario;
 import CampusLands.logitrack.repository.UsuarioRepository;
 import CampusLands.logitrack.security.JwtService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
@@ -25,7 +26,7 @@ public class AuthController {
 
 
     @PostMapping("/login")
-    public Map<String, String> login(@RequestBody LoginRequest request) {
+    public Map<String, String> login(@Valid @RequestBody LoginRequest request) {
 
         // Busco el usuario en la base de datos
         List<Usuario> usuarios = usuarioRepository.findByUsername(request.username());
@@ -59,7 +60,7 @@ public class AuthController {
      * No se pueden crear mas administradores desde aqui.
      */
     @PostMapping("/register")
-    public Map<String, String> register(@RequestBody RegisterRequest request) {
+    public Map<String, String> register(@Valid @RequestBody RegisterRequest request) {
 
         // No permito usernames repetidos
         List<Usuario> existentes = usuarioRepository.findByUsername(request.username());
