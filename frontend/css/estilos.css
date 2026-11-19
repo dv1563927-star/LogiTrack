@@ -1,4 +1,4 @@
-﻿/* =========================================================
+/* =========================================================
    LogiTrack â€” sistema visual
    Paleta: #73030D  #732F3B  #F2F2F2  #8C8C8C  #0D0D0D
    TipografÃ­a: Reddit Sans + JetBrains Mono.
@@ -12,7 +12,7 @@
   --bg:        #F2F2F2;
   --surface:   #E9E9E9;
   --ink:       #0D0D0D;
-  --muted:     #6B6B6B;   /* oscurecido: #8C8C8C no llega a 4.5:1 sobre el fondo */
+  --muted:     #666666;   /* oscurecido: #8C8C8C no llega a 4.5:1 sobre el fondo */
   --gris:      #8C8C8C;   /* el gris de la paleta: bordes suaves y texto inactivo */
   --accent:    #73030D;
   --accent-hover:  #5A0209;
