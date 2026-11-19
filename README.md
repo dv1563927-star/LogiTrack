@@ -116,6 +116,7 @@ persona y no a una "foto" del momento del login.
 | `/api/movimiento/**` y `/api/detalle/**` | ✅ | ✅ |
 | `/api/auditoria/**` | ✅ | ❌ 403 |
 | `/auth/pendientes`, `/auth/aprobar/**`, `/auth/rechazar/**` | ✅ | ❌ 403 |
+| `/auth/usuarios/**` (gestión de usuarios) | ✅ | ❌ 403 |
 
 ---
 
@@ -130,6 +131,11 @@ persona y no a una "foto" del momento del login.
 | `GET` | `/auth/pendientes` | Solicitudes pendientes *(solo ADMIN)* |
 | `POST` | `/auth/aprobar/{id}` | Aprueba una solicitud *(solo ADMIN)* |
 | `POST` | `/auth/rechazar/{id}` | Rechaza una solicitud *(solo ADMIN)* |
+| `GET` | `/auth/usuarios` | Lista todos los usuarios *(solo ADMIN)* |
+| `POST` | `/auth/usuarios/{id}/baja` | Da de baja al usuario: queda INACTIVO *(solo ADMIN)* |
+| `POST` | `/auth/usuarios/{id}/alta` | Reactiva a un usuario dado de baja *(solo ADMIN)* |
+| `POST` | `/auth/usuarios/{id}/admin` | Convierte al usuario en administrador *(solo ADMIN)* |
+| `POST` | `/auth/usuarios/{id}/empleado` | Le quita el rol de administrador *(solo ADMIN)* |
 
 ### Bodegas — `/api/bodega`
 
@@ -288,6 +294,16 @@ El stock **solo** cambia cuando se registra un detalle de movimiento
 | **ENTRADA** | Suma la cantidad al inventario de la bodega **destino** |
 | **SALIDA** | Resta la cantidad del inventario de la bodega **origen** (valida que alcance) |
 | **TRANSFERENCIA** | Resta del origen y suma al destino |
+
+Antes de mover se valida:
+
+- Que la cantidad sea mayor a cero.
+- Que una transferencia no sea entre la misma bodega.
+- Que haya stock suficiente en la bodega de origen.
+- **Que la bodega de destino tenga capacidad libre.** La capacidad es el total de
+  unidades que puede almacenar la bodega, sumando todos sus productos. Si el ingreso
+  la supera, la operación se rechaza con un `400` que indica la capacidad, lo ocupado
+  y cuánto se intentaba ingresar.
 
 Después de mover, se recalcula el total del producto:
 
