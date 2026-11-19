@@ -229,8 +229,8 @@ async function vistaAuditoria() {
       `<span class="eti eti--${clase[a.tipoOperacion] || "neutra"}">${esc(a.tipoOperacion)}</span>`,
       esc(a.entidadAfectada),
       esc(a.usuario),
-      `<span style="color:var(--tinta-suave);font-size:var(--t-xs)">${esc(a.valoresAnteriores ?? "—")}</span>`,
-      `<span style="color:var(--tinta-suave);font-size:var(--t-xs)">${esc(a.valoresNuevos ?? "—")}</span>`
+      `<span class="auditoria-valores">${esc(a.valoresAnteriores ?? "—")}</span>`,
+      `<span class="auditoria-valores">${esc(a.valoresNuevos ?? "—")}</span>`
     ])
   ));
 }
