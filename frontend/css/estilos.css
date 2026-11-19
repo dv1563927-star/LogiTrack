@@ -46,6 +46,13 @@
   --t-lg:  1.125rem;
   --t-xl:  1.28rem;
   --t-2xl: 1.5rem;
+
+  /* Movimiento: curvas fuertes, no las de fabrica del navegador */
+  --ease-out:    cubic-bezier(0.23, 1, 0.32, 1);
+  --ease-in-out: cubic-bezier(0.77, 0, 0.175, 1);
+  --dur-fast:  140ms;   /* feedback de presion */
+  --dur:       180ms;   /* hover y cambios de estado */
+  --dur-vista: 220ms;   /* cambio de vista */
 }
 
 /* ---------- Reset ---------- */
@@ -138,9 +145,16 @@ input[aria-invalid="true"]:focus { box-shadow: 0 0 0 3px var(--peligro-tenue); }
   font-size: var(--t-sm);
   font-weight: 600;
   cursor: pointer;
-  transition: background-color .15s ease, border-color .15s ease, color .15s ease;
   white-space: nowrap;
+  transition:
+    background-color var(--dur) var(--ease-out),
+    border-color var(--dur) var(--ease-out),
+    color var(--dur) var(--ease-out),
+    transform var(--dur-fast) var(--ease-out);
 }
+
+/* Feedback de presion: el boton confirma que la interfaz escucho */
+.boton:active:not(:disabled) { transform: scale(0.97); }
 
 .boton--primario { background: var(--acento); color: #fff; }
 .boton--primario:hover:not(:disabled) { background: var(--acento-hover); }
@@ -248,7 +262,18 @@ input[aria-invalid="true"]:focus { box-shadow: 0 0 0 3px var(--peligro-tenue); }
   border-bottom-color: var(--acento);
 }
 
-.acceso__cuerpo { padding: 24px 26px 26px; display: grid; gap: 16px; }
+.acceso__cuerpo {
+  padding: 24px 26px 26px;
+  display: grid;
+  gap: 16px;
+  transition:
+    opacity 180ms var(--ease-out),
+    transform 180ms var(--ease-out);
+  @starting-style {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+}
 
 .acceso__pie {
   padding: 14px 26px;
@@ -275,6 +300,10 @@ input[aria-invalid="true"]:focus { box-shadow: 0 0 0 3px var(--peligro-tenue); }
   border-radius: var(--radio);
   font-size: var(--t-sm);
   border: 1px solid;
+  transition: opacity 160ms var(--ease-out);
+  @starting-style {
+    opacity: 0;
+  }
 }
 .aviso--error   { background: var(--peligro-tenue); border-color: #eccfcc; color: var(--peligro); }
 .aviso--exito   { background: var(--exito-tenue);   border-color: #cfe6da; color: var(--exito); }
@@ -340,7 +369,9 @@ input[aria-invalid="true"]:focus { box-shadow: 0 0 0 3px var(--peligro-tenue); }
   font-size: var(--t-sm);
   text-align: left;
   cursor: pointer;
-  transition: background-color .15s ease, color .15s ease;
+  transition:
+    background-color var(--dur) var(--ease-out),
+    color var(--dur) var(--ease-out);
 }
 
 .barra__enlace svg { width: 16px; height: 16px; flex: none; opacity: .8; }
@@ -410,6 +441,17 @@ input[aria-invalid="true"]:focus { box-shadow: 0 0 0 3px var(--peligro-tenue); }
 
 .vista { padding: 24px 32px 48px; display: grid; gap: 20px; align-content: start; }
 
+/* Al cambiar de vista el contenido entra en vez de teletransportarse */
+.vista > * {
+  transition:
+    opacity var(--dur-vista) var(--ease-out),
+    transform var(--dur-vista) var(--ease-out);
+  @starting-style {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+}
+
 /* ---------- Panel de contenido ---------- */
 .panel {
   background: var(--superficie);
@@ -455,6 +497,21 @@ tbody td {
   border-bottom: 1px solid var(--linea);
   vertical-align: middle;
 }
+
+/* Las filas entran escalonadas: el ojo sigue un orden en vez de recibir todo de golpe */
+@keyframes fila-entra {
+  from { opacity: 0; transform: translateY(3px); }
+}
+
+tbody tr {
+  transition: background-color var(--dur) var(--ease-out);
+  animation: fila-entra 200ms var(--ease-out) both;
+}
+tbody tr:nth-child(2) { animation-delay: 30ms; }
+tbody tr:nth-child(3) { animation-delay: 60ms; }
+tbody tr:nth-child(4) { animation-delay: 90ms; }
+tbody tr:nth-child(5) { animation-delay: 120ms; }
+tbody tr:nth-child(6) { animation-delay: 150ms; }
 
 tbody tr:last-child td { border-bottom: 0; }
 tbody tr:hover { background: #fafbfb; }
@@ -512,14 +569,23 @@ td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
 .form-fila .campo--ancho { grid-column: 1 / -1; }
 
 /* ---------- Cargando ---------- */
+/* Skeletons: el brillo se mueve con transform (compositor), no con background-position */
 .esqueleto {
+  position: relative;
   height: 13px;
   border-radius: 3px;
-  background: linear-gradient(90deg, var(--superficie-2) 25%, #e9edef 50%, var(--superficie-2) 75%);
-  background-size: 200% 100%;
-  animation: brillo 1.3s ease-in-out infinite;
+  background: var(--superficie-2);
+  overflow: hidden;
 }
-@keyframes brillo { to { background-position: -200% 0; } }
+.esqueleto::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(90deg, transparent, #e9eef0, transparent);
+  transform: translateX(-100%);
+  animation: brillo 1.4s var(--ease-in-out) infinite;
+}
+@keyframes brillo { to { transform: translateX(100%); } }
 
 /* ---------- Responsive ---------- */
 @media (max-width: 860px) {
@@ -541,4 +607,28 @@ td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
   .barra__usuario div { display: none; }
   .barra__salir { display: none; }
   .cabecera, .vista { padding-left: 16px; padding-right: 16px; }
+}
+
+/* ---------- Movimiento reducido ----------
+   Menos movimiento, no cero: se conservan los fundidos que ayudan a entender
+   el cambio de estado y se quitan los desplazamientos y las entradas. */
+@media (prefers-reduced-motion: reduce) {
+  .vista > *,
+  .acceso__cuerpo {
+    transform: none;
+    transition: opacity 120ms ease;
+    @starting-style {
+      opacity: 0;
+      transform: none;
+    }
+  }
+
+  tbody tr { animation: none; }
+
+  .esqueleto::after {
+    animation: none;
+    background: var(--superficie-2);
+  }
+
+  .boton:active:not(:disabled) { transform: none; }
 }
