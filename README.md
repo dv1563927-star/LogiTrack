@@ -4,6 +4,9 @@ Backend en **Spring Boot** para administrar bodegas distribuidas, controlar movi
 inventario (entradas, salidas y transferencias) y **auditar automáticamente** cada cambio
 sobre la base de datos, con autenticación **JWT** y roles **ADMIN / EMPLEADO**.
 
+📄 **[Manual de usuario (PDF)](manual/manual-de-usuario.pdf)** — cómo entrar, registrar
+movimientos, consultar el inventario y probar la API en Swagger.
+
 ---
 
 ## Tecnologías
