@@ -1,11 +1,13 @@
 package CampusLands.logitrack.model;
 
+import CampusLands.logitrack.config.AuditoriaListener;
 import jakarta.persistence.*;
 import lombok.*;
 
 import java.time.LocalDateTime;
 
 @Entity
+@EntityListeners(AuditoriaListener.class)
 @Table(name = "movimiento")
 @Getter @Setter
 @AllArgsConstructor

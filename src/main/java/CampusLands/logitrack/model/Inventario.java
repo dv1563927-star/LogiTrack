@@ -1,9 +1,11 @@
 package CampusLands.logitrack.model;
 
+import CampusLands.logitrack.config.AuditoriaListener;
 import jakarta.persistence.*;
 import lombok.*;
 
 @Entity
+@EntityListeners(AuditoriaListener.class)
 @Table(name = "inventario")
 @Getter @Setter
 @AllArgsConstructor

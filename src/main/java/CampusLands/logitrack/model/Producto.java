@@ -1,11 +1,13 @@
 package CampusLands.logitrack.model;
 
+import CampusLands.logitrack.config.AuditoriaListener;
 import jakarta.persistence.*;
 import lombok.*;
 
 import java.math.BigDecimal;
 
 @Entity
+@EntityListeners(AuditoriaListener.class)
 @Table(name = "producto")
 @Getter @Setter
 @AllArgsConstructor
