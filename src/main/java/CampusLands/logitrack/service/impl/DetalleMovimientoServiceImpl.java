@@ -161,8 +161,77 @@ public class DetalleMovimientoServiceImpl implements DetalleMovimientoService {
 
     @Override
     public void eliminar(Long id) {
+
         DetalleMovimiento detalle = detalleMovimientoRepository.findById(id)
                 .orElseThrow(() -> new BusinessRuleException("No existe dicho detalle de movimiento"));
+
+        Movimiento movimiento = detalle.getMovimiento();
+        Producto producto = detalle.getProducto();
+        Integer cantidad = detalle.getCantidad();
+
+        // Al borrar el detalle se devuelve el stock que ese detalle habia movido
+        if (movimiento.getTipo() == TipoMovimiento.ENTRADA) {
+
+            Bodega bodega = movimiento.getBodegaDestino();
+            List<Inventario> filas = inventarioRepository.findByBodegaIdAndProductoId(bodega.getId(), producto.getId());
+            if (filas.isEmpty() || filas.get(0).getCantidad() < cantidad) {
+                throw new BusinessRuleException("No se puede eliminar: el stock de esa entrada ya fue consumido");
+            }
+            Inventario inventario = filas.get(0);
+            inventario.setCantidad(inventario.getCantidad() - cantidad);
+            inventarioRepository.save(inventario);
+
+        } else if (movimiento.getTipo() == TipoMovimiento.SALIDA) {
+
+            Bodega bodega = movimiento.getBodegaOrigen();
+            List<Inventario> filas = inventarioRepository.findByBodegaIdAndProductoId(bodega.getId(), producto.getId());
+            if (filas.isEmpty()) {
+                Inventario nuevo = new Inventario();
+                nuevo.setBodega(bodega);
+                nuevo.setProducto(producto);
+                nuevo.setCantidad(cantidad);
+                inventarioRepository.save(nuevo);
+            } else {
+                Inventario inventario = filas.get(0);
+                inventario.setCantidad(inventario.getCantidad() + cantidad);
+                inventarioRepository.save(inventario);
+            }
+
+        } else {
+
+            // TRANSFERENCIA: se quita del destino y se devuelve al origen
+            Bodega origen = movimiento.getBodegaOrigen();
+            Bodega destino = movimiento.getBodegaDestino();
+
+            List<Inventario> filasDestino = inventarioRepository.findByBodegaIdAndProductoId(destino.getId(), producto.getId());
+            if (filasDestino.isEmpty() || filasDestino.get(0).getCantidad() < cantidad) {
+                throw new BusinessRuleException("No se puede eliminar: el stock de esa transferencia ya fue consumido en el destino");
+            }
+            Inventario inventarioDestino = filasDestino.get(0);
+            inventarioDestino.setCantidad(inventarioDestino.getCantidad() - cantidad);
+            inventarioRepository.save(inventarioDestino);
+
+            List<Inventario> filasOrigen = inventarioRepository.findByBodegaIdAndProductoId(origen.getId(), producto.getId());
+            if (filasOrigen.isEmpty()) {
+                Inventario nuevo = new Inventario();
+                nuevo.setBodega(origen);
+                nuevo.setProducto(producto);
+                nuevo.setCantidad(cantidad);
+                inventarioRepository.save(nuevo);
+            } else {
+                Inventario inventarioOrigen = filasOrigen.get(0);
+                inventarioOrigen.setCantidad(inventarioOrigen.getCantidad() + cantidad);
+                inventarioRepository.save(inventarioOrigen);
+            }
+        }
+
+        // Se recalcula el stock total del producto
+        int total = inventarioRepository.findByProductoId(producto.getId()).stream()
+                .mapToInt(Inventario::getCantidad)
+                .sum();
+        producto.setStock(total);
+        productoRepository.save(producto);
+
         detalleMovimientoRepository.delete(detalle);
     }
 
