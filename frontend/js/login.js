@@ -8,16 +8,40 @@ const tabRegistro = document.getElementById("tab-registro");
 const panelLogin = document.getElementById("panel-login");
 const panelRegistro = document.getElementById("panel-registro");
 
+const sinMovimiento = window.matchMedia("(prefers-reduced-motion: reduce)");
+
 function activarPestana(cual) {
   const esLogin = cual === "login";
+  const destino = esLogin ? panelLogin : panelRegistro;
+  const actual = esLogin ? panelRegistro : panelLogin;
 
   tabLogin.setAttribute("aria-selected", String(esLogin));
   tabRegistro.setAttribute("aria-selected", String(!esLogin));
   tabLogin.tabIndex = esLogin ? 0 : -1;
   tabRegistro.tabIndex = esLogin ? -1 : 0;
 
-  panelLogin.hidden = !esLogin;
-  panelRegistro.hidden = esLogin;
+  if (!destino.hidden) return;
+
+  // "Solicitud de registro" esta debajo de "Iniciar sesion"
+  const haciaAbajo = !esLogin;
+
+  if (sinMovimiento.matches) {
+    actual.hidden = true;
+    destino.hidden = false;
+    return;
+  }
+
+  // El panel que sale se desvanece hacia el lado contrario
+  actual.dataset.saliendo = haciaAbajo ? "arriba" : "abajo";
+
+  window.setTimeout(() => {
+    actual.hidden = true;
+    delete actual.dataset.saliendo;
+
+    // El que entra viene desde el lado hacia el que se navega
+    destino.style.setProperty("--entra-desde", (haciaAbajo ? 10 : -10) + "px");
+    destino.hidden = false;
+  }, 130);
 }
 
 tabLogin.addEventListener("click", () => activarPestana("login"));
@@ -88,7 +112,11 @@ document.getElementById("form-login").addEventListener("submit", async (evento) 
     localStorage.setItem("logitrack_nombre", datos.nombre || datos.username);
     localStorage.setItem("logitrack_rol", datos.rol);
 
-    window.location.href = "dashboard.html";
+    // La tarjeta se apaga antes de pasar al panel
+    document.body.dataset.saliendo = "login";
+    window.setTimeout(() => {
+      window.location.href = "dashboard.html";
+    }, sinMovimiento.matches ? 0 : 280);
 
   } catch (e) {
     mostrarAviso("login-aviso", "login-aviso-texto",

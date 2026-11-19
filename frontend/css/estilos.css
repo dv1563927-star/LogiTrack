@@ -267,6 +267,20 @@ input[aria-invalid="true"]:focus { box-shadow: 0 0 0 3px rgba(115, 3, 13, .16); 
   border: 1px solid var(--line);
   border-radius: var(--r-lg);
   overflow: hidden;
+  transition:
+    opacity 260ms var(--ease-out),
+    transform 260ms var(--ease-out);
+  /* La tarjeta entra una vez, sin coreografia de carga */
+  @starting-style {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+}
+
+/* Al iniciar sesion la tarjeta se apaga antes de navegar */
+body[data-saliendo] .acceso__panel {
+  opacity: 0;
+  transform: scale(0.98);
 }
 
 .acceso__marca { padding: var(--s-6) var(--s-6) 0; display: grid; gap: var(--s-2); }
@@ -318,12 +332,25 @@ input[aria-invalid="true"]:focus { box-shadow: 0 0 0 3px rgba(115, 3, 13, .16); 
   display: grid;
   gap: var(--s-4);
   transition:
-    opacity 180ms var(--ease-out),
-    transform 180ms var(--ease-out);
+    opacity 200ms var(--ease-out),
+    transform 200ms var(--ease-out);
+  /* El panel que entra viene desde el lado hacia el que se navega */
   @starting-style {
     opacity: 0;
-    transform: translateY(-4px);
+    transform: translateY(var(--entra-desde, -8px));
   }
+}
+
+/* El panel que sale se desvanece hacia el lado contrario (mas rapido) */
+.acceso__cuerpo[data-saliendo="arriba"] {
+  opacity: 0;
+  transform: translateY(-8px);
+  transition-duration: 130ms;
+}
+.acceso__cuerpo[data-saliendo="abajo"] {
+  opacity: 0;
+  transform: translateY(8px);
+  transition-duration: 130ms;
 }
 
 .acceso__pie {
@@ -370,7 +397,11 @@ input[aria-invalid="true"]:focus { box-shadow: 0 0 0 3px rgba(115, 3, 13, .16); 
   display: grid;
   grid-template-columns: 236px 1fr;
   min-height: 100dvh;
+  transition: opacity 220ms var(--ease-out);
 }
+
+/* Al cerrar sesion la pantalla se apaga antes de volver al login */
+body[data-saliendo] .app { opacity: 0; }
 
 /* ---------- Barra lateral (ground invertido) ---------- */
 .barra {
@@ -515,16 +546,24 @@ input[aria-invalid="true"]:focus { box-shadow: 0 0 0 3px rgba(115, 3, 13, .16); 
   align-content: start;
 }
 
-/* Al cambiar de vista el contenido entra en vez de teletransportarse */
+/* Al cambiar de vista el contenido entra en vez de teletransportarse,
+   desde arriba o desde abajo segun hacia donde se navega */
+.vista { --vista-desde: 6px; }
+.vista[data-dir="arriba"] { --vista-desde: -6px; }
+
 .vista > * {
   transition:
     opacity var(--dur-vista) var(--ease-out),
     transform var(--dur-vista) var(--ease-out);
   @starting-style {
     opacity: 0;
-    transform: translateY(6px);
+    transform: translateY(var(--vista-desde));
   }
 }
+
+/* Los paneles entran escalonados, no todos de golpe */
+.vista > *:nth-child(2) { transition-delay: 40ms; }
+.vista > *:nth-child(3) { transition-delay: 80ms; }
 
 /* ---------- Panel: una hairline, sin sombra ---------- */
 .panel {
@@ -834,4 +873,10 @@ td.num, th.num { text-align: right; font-family: var(--font-mono); font-variant-
   }
 
   .boton:active:not(:disabled) { transform: none; }
+
+  /* Las transiciones de pestañas quedan solo como fundido */
+  .acceso__cuerpo[data-saliendo] { transform: none; }
+  body[data-saliendo] .acceso__panel { transform: none; }
+  .vista > *:nth-child(2),
+  .vista > *:nth-child(3) { transition-delay: 0ms; }
 }

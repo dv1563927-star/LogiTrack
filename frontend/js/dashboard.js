@@ -18,6 +18,9 @@ if (!token) { window.location.href = "index.html"; }
 
 const esAdmin = rol === "ADMIN";
 
+/* Ultima vista mostrada: sirve para saber hacia donde se navega */
+let vistaAnterior = null;
+
 /* ================= Utilidades ================= */
 
 function esc(valor) {
@@ -37,8 +40,18 @@ function fecha(valor) {
 }
 
 function salir() {
+  const sinMovimiento = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
   localStorage.clear();
-  window.location.href = "index.html";
+
+  if (sinMovimiento) {
+    window.location.href = "index.html";
+    return;
+  }
+
+  // La pantalla se apaga antes de volver al login
+  document.body.dataset.saliendo = "sesion";
+  window.setTimeout(() => { window.location.href = "index.html"; }, 220);
 }
 
 async function pedir(ruta, opciones = {}) {
@@ -462,6 +475,13 @@ async function mostrar(nombreVista, parametro) {
   document.getElementById("desc-vista").textContent = vista.desc;
 
   const contenedor = document.getElementById("vista");
+
+  // La entrada viene de arriba o de abajo segun el orden del menu
+  const orden = ["bodegas", "productos", "inventario", "movimiento", "detalle", "solicitudes", "auditoria", "reporte"];
+  const indiceNuevo = orden.indexOf(nombreVista);
+  const indiceAnterior = vistaAnterior === null ? indiceNuevo : orden.indexOf(vistaAnterior);
+  contenedor.dataset.dir = indiceNuevo >= indiceAnterior ? "abajo" : "arriba";
+  vistaAnterior = nombreVista;
   contenedor.innerHTML = `<div class="panel"><div class="panel__cabecera"><div><h3>Cargando</h3><p>Un momento…</p></div></div><div style="padding:18px"><div class="esqueleto" style="width:60%"></div></div></div>`;
 
   try {
