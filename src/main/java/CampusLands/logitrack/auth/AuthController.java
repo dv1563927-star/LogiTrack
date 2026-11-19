@@ -49,6 +49,7 @@ public class AuthController {
 
         return Map.of("token", token,
                 "username", usuario.getUsername(),
+                "nombre", usuario.getNombre(),
                 "rol", usuario.getRol().name());
     }
 
@@ -69,6 +70,8 @@ public class AuthController {
         Usuario usuario = new Usuario();
         usuario.setUsername(request.username());
         usuario.setPassword(request.password());
+        usuario.setNombre(request.nombre());
+        usuario.setTelefono(request.telefono());
         usuario.setRol(Rol.EMPLEADO);
         usuario.setEstado(EstadoUsuario.PENDIENTE);
         usuarioRepository.save(usuario);

@@ -34,6 +34,8 @@ CREATE TABLE usuario (
     id       BIGINT AUTO_INCREMENT PRIMARY KEY,
     username VARCHAR(50)  NOT NULL UNIQUE,
     password VARCHAR(255) NOT NULL,
+    nombre   VARCHAR(100) NOT NULL,
+    telefono VARCHAR(20)  NOT NULL,
     rol      VARCHAR(20)  NOT NULL,
     estado   VARCHAR(20)  NOT NULL DEFAULT 'ACTIVO'
 ) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4 COLLATE = utf8mb4_unicode_ci;
@@ -108,10 +110,10 @@ CREATE TABLE auditoria (
 -- Usuarios (contrasena en texto plano, solo para el ejercicio academico)
 -- Solo el admin viene ACTIVO de entrada. Los demas quedan PENDIENTES
 -- hasta que el administrador apruebe la solicitud.
-INSERT INTO usuario (id, username, password, rol, estado) VALUES
-(1, 'admin',      'admin123',    'ADMIN',    'ACTIVO'),
-(2, 'empleado',   'empleado123', 'EMPLEADO', 'ACTIVO'),
-(3, 'juan.perez', 'clave1234',   'EMPLEADO', 'PENDIENTE');
+INSERT INTO usuario (id, username, password, nombre, telefono, rol, estado) VALUES
+(1, 'admin',      'admin123',    'Administrador LogiTrack', '3001234567', 'ADMIN',    'ACTIVO'),
+(2, 'empleado',   'empleado123', 'Empleado de Prueba',      '3009876543', 'EMPLEADO', 'ACTIVO'),
+(3, 'juan.perez', 'clave1234',   'Juan Perez',              '3105551234', 'EMPLEADO', 'PENDIENTE');
 
 -- Bodegas
 INSERT INTO bodega (id, nombre, ubicacion, capacidad, encargado) VALUES

@@ -21,6 +21,14 @@ public class Usuario {
     @Column(nullable = false, length = 255)
     private String password;
 
+    // Nombre completo de la persona
+    @Column(nullable = false, length = 100)
+    private String nombre;
+
+    // Telefono de contacto
+    @Column(nullable = false, length = 20)
+    private String telefono;
+
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 20)
     private Rol rol;

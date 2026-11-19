@@ -83,7 +83,7 @@ ejercicio académico; en un sistema real se almacenarían con BCrypt.
 
 ### Flujo de registro y aprobación
 
-1. Una persona se registra en `POST /auth/register` con `username` y `password`.
+1. Una persona se registra en `POST /auth/register` con `username`, `password`, `nombre` y `telefono`.
 2. El sistema la crea **siempre** como `EMPLEADO` y en estado **`PENDIENTE`**.
    No es posible crear nuevos administradores desde la API.
 3. El administrador consulta las solicitudes con `GET /auth/pendientes`.

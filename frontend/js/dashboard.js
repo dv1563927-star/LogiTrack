@@ -4,6 +4,7 @@ const API = "http://localhost:8080";
 
 const token = localStorage.getItem("logitrack_token");
 const usuario = localStorage.getItem("logitrack_usuario");
+const nombre = localStorage.getItem("logitrack_nombre");
 const rol = localStorage.getItem("logitrack_rol");
 
 if (!token) { window.location.href = "index.html"; }
@@ -202,7 +203,7 @@ async function vistaSolicitudes() {
   const pendientes = await pedir("/auth/pendientes");
 
   const filas = pendientes.map((u) => [
-    esc(u.id), esc(u.username),
+    esc(u.id), esc(u.username), esc(u.nombre), esc(u.telefono),
     `<span class="eti eti--${u.estado === "PENDIENTE" ? "pendiente" : u.estado === "ACTIVO" ? "activo" : "rechazado"}">${esc(u.estado)}</span>`,
     `<span style="display:flex;gap:6px">
        <button class="boton boton--primario boton--sm" data-aprobar="${esc(u.id)}">Aprobar</button>
@@ -212,7 +213,7 @@ async function vistaSolicitudes() {
 
   return panel("Solicitudes de registro", pendientes.length + " pendientes",
     `<div id="sol-aviso" style="padding:14px 18px 0"></div>` +
-    tabla(["ID", "Usuario", "Estado", "Acciones"], filas));
+    tabla(["ID", "Usuario", "Nombre", "Teléfono", "Estado", "Acciones"], filas));
 }
 
 async function vistaAuditoria() {
@@ -438,9 +439,9 @@ document.querySelectorAll(".barra__enlace").forEach((boton) => {
 
 document.getElementById("btn-salir").addEventListener("click", salir);
 
-document.getElementById("usuario-nombre").textContent = usuario || "—";
+document.getElementById("usuario-nombre").textContent = nombre || usuario || "—";
 document.getElementById("usuario-rol").textContent = rol || "—";
-document.getElementById("inicial").textContent = (usuario || "?").charAt(0).toUpperCase();
+document.getElementById("inicial").textContent = (nombre || usuario || "?").charAt(0).toUpperCase();
 
 if (!esAdmin) {
   document.querySelectorAll(".solo-admin").forEach((el) => el.remove());

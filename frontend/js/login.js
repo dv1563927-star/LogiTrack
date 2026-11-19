@@ -85,6 +85,7 @@ document.getElementById("form-login").addEventListener("submit", async (evento) 
     const datos = await respuesta.json();
     localStorage.setItem("logitrack_token", datos.token);
     localStorage.setItem("logitrack_usuario", datos.username);
+    localStorage.setItem("logitrack_nombre", datos.nombre || datos.username);
     localStorage.setItem("logitrack_rol", datos.rol);
 
     window.location.href = "dashboard.html";
@@ -103,6 +104,8 @@ document.getElementById("form-registro").addEventListener("submit", async (event
 
   const boton = document.getElementById("btn-registro");
   const usuario = document.getElementById("reg-usuario").value.trim();
+  const nombre = document.getElementById("reg-nombre").value.trim();
+  const telefono = document.getElementById("reg-telefono").value.trim();
   const clave = document.getElementById("reg-clave").value;
   const clave2 = document.getElementById("reg-clave2").value;
   const errorClave = document.getElementById("reg-error-clave");
@@ -111,7 +114,7 @@ document.getElementById("form-registro").addEventListener("submit", async (event
   mostrarAviso("registro-exito", "registro-exito-texto", "", "");
   errorClave.hidden = true;
 
-  if (!usuario || !clave || !clave2) {
+  if (!usuario || !nombre || !telefono || !clave || !clave2) {
     mostrarAviso("registro-aviso", "registro-aviso-texto", "Completá todos los campos.", "error");
     return;
   }
@@ -127,7 +130,7 @@ document.getElementById("form-registro").addEventListener("submit", async (event
     const respuesta = await fetch(API + "/auth/register", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ username: usuario, password: clave })
+      body: JSON.stringify({ username: usuario, password: clave, nombre: nombre, telefono: telefono })
     });
 
     if (!respuesta.ok) {
