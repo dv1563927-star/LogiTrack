@@ -28,5 +28,4 @@ INSERT IGNORE INTO inventario (id, bodega_id, producto_id, cantidad) VALUES
 (6, 3, 1, 3),
 (7, 2, 3, 10);
 
--- Los usuarios con contrasena encriptada se crean en
--- config/DataInitializer.java porque el hash BCrypt se genera en Java.
+-- Los usuarios de prueba los crea sql/logitrack.sql junto con el resto del esquema.

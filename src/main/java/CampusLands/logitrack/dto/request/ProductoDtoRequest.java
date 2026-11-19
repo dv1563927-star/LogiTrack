@@ -17,11 +17,10 @@ public record ProductoDtoRequest(
         @Size(min = 2, max = 50, message = "La categoria debe tener entre 2 y 50 caracteres")
         String categoria,
 
-        @Schema(description = "Cantidad total en todas las bodegas", example = "8")
-        @NotNull(message = "Error, el stock no puede ser nulo")
-        @Min(value = 0, message = "Error, el stock no puede ser negativo")
-        Integer stock,
-
+        /*
+         * El producto NO trae stock al crearse: el stock es lo que hay en las
+         * bodegas. Nace en 0 y solo cambia cuando se registran movimientos.
+         */
         @Schema(description = "Precio de venta del producto", example = "250000")
         @NotNull(message = "Error, el precio no puede ser nulo")
         @Positive(message = "Error, el precio debe ser mayor a cero")

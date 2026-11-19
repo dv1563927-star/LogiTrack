@@ -25,7 +25,8 @@ public class ProductoMapper {
         Producto p = new Producto();
         p.setNombre(dto.nombre());
         p.setCategoria(dto.categoria());
-        p.setStock(dto.stock());
+        // Nace sin stock: lo que hay se guarda en el inventario de cada bodega
+        p.setStock(0);
         p.setPrecio(dto.precio());
         return p;
     }
@@ -34,7 +35,7 @@ public class ProductoMapper {
         if (dto == null || producto == null) return;
         producto.setNombre(dto.nombre());
         producto.setCategoria(dto.categoria());
-        producto.setStock(dto.stock());
+        // El stock no se toca al editar: solo cambia con los movimientos
         producto.setPrecio(dto.precio());
     }
 

@@ -96,7 +96,7 @@ function opcionesBodega(bodegas) {
 
 function opcionesProducto(productos) {
   return productos.map((p) =>
-    `<option value="${esc(p.id)}">${esc(p.nombre)} — stock ${esc(p.stock)}</option>`).join("");
+    `<option value="${esc(p.id)}">${esc(p.nombre)} — ${esc(p.stock)} en bodegas</option>`).join("");
 }
 
 /* ================= Vistas ================= */
@@ -127,12 +127,11 @@ async function vistaBodegas() {
 async function vistaProductos() {
   const productos = await pedir("/api/producto");
 
-  const formulario = esAdmin ? panel("Nuevo producto", "El stock se actualiza solo con los movimientos", `
+  const formulario = esAdmin ? panel("Nuevo producto", "Nace sin stock: después se le asigna con movimientos en cada bodega", `
     <form id="form-producto" class="form-cuerpo">
       <div class="form-fila">
         <div class="campo"><label for="p-nombre">Nombre</label><input id="p-nombre" required placeholder="Monitor 27"></div>
         <div class="campo"><label for="p-categoria">Categoría</label><input id="p-categoria" required placeholder="Pantallas"></div>
-        <div class="campo"><label for="p-stock">Stock inicial</label><input id="p-stock" type="number" min="0" required placeholder="10"></div>
         <div class="campo"><label for="p-precio">Precio</label><input id="p-precio" type="number" min="1" step="0.01" required placeholder="450000"></div>
       </div>
       <div class="form-pie">
@@ -142,7 +141,7 @@ async function vistaProductos() {
     </form>`) : "";
 
   return formulario + panel("Catálogo", productos.length + " productos", tabla(
-    ["ID", "Nombre", "Categoría", "Stock", "Precio"],
+    ["ID", "Nombre", "Categoría", "Stock total", "Precio"],
     productos.map((p) => [esc(p.id), esc(p.nombre), esc(p.categoria),
       `<span class="dato-num">${esc(p.stock)}</span>`,
       `<span class="dato-num">${dinero(p.precio)}</span>`])
@@ -272,7 +271,7 @@ async function vistaMovimiento() {
     ${panel("Bodegas disponibles", "Para saber cuál es cuál",
       tabla(["ID", "Bodega", "Ubicación"], bodegas.map((b) => [esc(b.id), esc(b.nombre), esc(b.ubicacion)])))}
     ${panel("Productos disponibles", "Con el stock actual",
-      tabla(["ID", "Producto", "Stock"], productos.map((p) => [esc(p.id), esc(p.nombre),
+      tabla(["ID", "Producto", "En bodegas"], productos.map((p) => [esc(p.id), esc(p.nombre),
         `<span class="dato-num">${esc(p.stock)}</span>`])))}
   </div>`;
 
@@ -555,7 +554,6 @@ function conectarVista(nombreVista) {
           body: JSON.stringify({
             nombre: document.getElementById("p-nombre").value.trim(),
             categoria: document.getElementById("p-categoria").value.trim(),
-            stock: Number(document.getElementById("p-stock").value),
             precio: Number(document.getElementById("p-precio").value)
           })
         });
