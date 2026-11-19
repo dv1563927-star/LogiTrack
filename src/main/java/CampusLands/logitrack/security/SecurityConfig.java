@@ -58,8 +58,9 @@ public class SecurityConfig {
                         .requestMatchers("/api/movimiento/**").hasAnyRole("ADMIN", "EMPLEADO")
                         .requestMatchers("/api/detalle/**").hasAnyRole("ADMIN", "EMPLEADO")
 
-                        // ===== AUDITORIA: solo ADMIN =====
+                        // ===== AUDITORIA Y REPORTES: solo ADMIN =====
                         .requestMatchers("/api/auditoria/**").hasRole("ADMIN")
+                        .requestMatchers("/api/reporte/**").hasRole("ADMIN")
 
                         // ===== GESTION DE BODEGAS, PRODUCTOS E INVENTARIO: solo ADMIN =====
                         .requestMatchers(HttpMethod.POST, "/api/bodega/**", "/api/producto/**", "/api/inventario/**").hasRole("ADMIN")
