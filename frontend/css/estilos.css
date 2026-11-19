@@ -1,41 +1,46 @@
-/* =========================================================
-   LogiTrack — sistema visual
-   Paleta y tipografía: repartidas por el dealer del skill
-   design-taste-frontend (palette mint-pink-accounts, type reddit).
+﻿/* =========================================================
+   LogiTrack â€” sistema visual
+   Paleta: #73030D  #732F3B  #F2F2F2  #8C8C8C  #0D0D0D
+   TipografÃ­a: Reddit Sans + JetBrains Mono.
    Superficie: Operate (panel de trabajo). Un solo sistema:
-   un botón, un radio, una hairline, una tabla, un acento.
+   un botÃ³n, un radio, una hairline, una tabla, un acento.
    ========================================================= */
 
-/* ---------- Tokens repartidos ---------- */
+/* ---------- Tokens ---------- */
 :root {
   /* paleta */
-  --bg:        #f8f8f8;
-  --surface:   #eeeeee;
-  --ink:       #0a0a0a;
-  --muted:     #6a6a6a;
-  --accent:    #1f6b3a;
-  --accent-ink:#ffffff;
+  --bg:        #F2F2F2;
+  --surface:   #E9E9E9;
+  --ink:       #0D0D0D;
+  --muted:     #6B6B6B;   /* oscurecido: #8C8C8C no llega a 4.5:1 sobre el fondo */
+  --gris:      #8C8C8C;   /* el gris de la paleta: bordes suaves y texto inactivo */
+  --accent:    #73030D;
+  --accent-hover:  #5A0209;
+  --accent-active: #430107;
+  --accent-ink:#F2F2F2;
 
   /* ground invertido (barra lateral) */
-  --inv-bg:      #0a0a0a;
-  --inv-surface: #171717;
-  --inv-ink:     #f8f8f8;
-  --inv-muted:   #939393;
+  --inv-bg:      #0D0D0D;
+  --inv-surface: #1A1012;
+  --inv-ink:     #F2F2F2;
+  --inv-muted:   #8C8C8C;
 
   /* hairline: 12-15% del ink, nunca un gris inventado */
-  --line:        rgba(10, 10, 10, .12);
-  --line-fuerte: rgba(10, 10, 10, .22);
-  --line-inv:    rgba(248, 248, 248, .14);
+  --line:        rgba(13, 13, 13, .12);
+  --line-fuerte: rgba(13, 13, 13, .24);
+  --line-inv:    rgba(242, 242, 242, .14);
 
-  /* estado: solo para marcas pequeñas y etiquetas */
-  --ok:      #1f6b3a;
-  --ok-bg:   #e8f1ec;
-  --warn:    #7d5300;
-  --warn-bg: #f8efdc;
-  --bad:     #9c2a21;
-  --bad-bg:  #f8e7e5;
+  /* estado: solo para marcas pequeÃ±as y etiquetas.
+     La paleta no trae color de exito, asi que va con un verde apagado;
+     pendiente usa el granate #732F3B y rechazado el #73030D. */
+  --ok:      #2C5F3E;
+  --ok-bg:   #E7F0EA;
+  --warn:    #732F3B;
+  --warn-bg: #F1E7E9;
+  --bad:     #73030D;
+  --bad-bg:  #F5E3E5;
 
-  /* tipografía */
+  /* tipografÃ­a */
   --font-display: "Reddit Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
   --font-text:    "Reddit Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
   --font-mono:    "JetBrains Mono", ui-monospace, "Cascadia Mono", Consolas, monospace;
@@ -92,7 +97,7 @@ body {
 button, input, select, textarea { font: inherit; color: inherit; }
 
 /* Superficies del navegador atadas a la paleta */
-::selection { background: #cfe6d8; color: var(--ink); }
+::selection { background: #EFCFD4; color: var(--ink); }
 :focus-visible {
   outline: 2px solid var(--accent);
   outline-offset: 2px;
@@ -100,7 +105,7 @@ button, input, select, textarea { font: inherit; color: inherit; }
 }
 html { scrollbar-color: var(--line-fuerte) transparent; scrollbar-width: thin; }
 
-/* ---------- Tipografía ---------- */
+/* ---------- TipografÃ­a ---------- */
 h1, h2, h3 {
   font-family: var(--font-display);
   font-weight: var(--display-weight);
@@ -120,7 +125,7 @@ p { text-wrap: pretty; }
   font-feature-settings: "tnum" 1;
 }
 
-/* Nunca versalitas ni mayúsculas con tracking: etiquetas en caja normal */
+/* Nunca versalitas ni mayÃºsculas con tracking: etiquetas en caja normal */
 .etiqueta-campo {
   font-size: var(--t-label);
   font-weight: 500;
@@ -160,7 +165,7 @@ input:hover:not(:disabled), select:hover:not(:disabled) { border-color: var(--in
 input:focus, select:focus {
   outline: none;
   border-color: var(--accent);
-  box-shadow: 0 0 0 3px rgba(31, 107, 58, .14);
+  box-shadow: 0 0 0 3px rgba(115, 3, 13, .14);
 }
 
 input:disabled, select:disabled {
@@ -170,7 +175,7 @@ input:disabled, select:disabled {
 }
 
 input[aria-invalid="true"] { border-color: var(--bad); }
-input[aria-invalid="true"]:focus { box-shadow: 0 0 0 3px rgba(156, 42, 33, .14); }
+input[aria-invalid="true"]:focus { box-shadow: 0 0 0 3px rgba(115, 3, 13, .16); }
 
 .ayuda { font-size: var(--t-label); color: var(--muted); }
 .error-campo { font-size: var(--t-label); color: var(--bad); }
@@ -198,18 +203,18 @@ input[aria-invalid="true"]:focus { box-shadow: 0 0 0 3px rgba(156, 42, 33, .14);
 
 /* El unico boton relleno marca la accion principal */
 .boton--primario { background: var(--accent); color: var(--accent-ink); }
-.boton--primario:hover:not(:disabled) { background: #185631; }
-.boton--primario:active:not(:disabled) { background: #12452a; }
+.boton--primario:hover:not(:disabled) { background: var(--accent-hover); }
+.boton--primario:active:not(:disabled) { background: var(--accent-active); }
 
 .boton--secundario {
   background: transparent;
   border-color: var(--line-fuerte);
   color: var(--ink);
 }
-.boton--secundario:hover:not(:disabled) { border-color: var(--ink); background: rgba(10, 10, 10, .03); }
+.boton--secundario:hover:not(:disabled) { border-color: var(--ink); background: rgba(13, 13, 13, .03); }
 
 .boton--fantasma { background: transparent; color: var(--muted); }
-.boton--fantasma:hover:not(:disabled) { color: var(--ink); background: rgba(10, 10, 10, .05); }
+.boton--fantasma:hover:not(:disabled) { color: var(--ink); background: rgba(13, 13, 13, .05); }
 
 .boton--peligro { background: transparent; border-color: var(--line-fuerte); color: var(--bad); }
 .boton--peligro:hover:not(:disabled) { border-color: var(--bad); background: var(--bad-bg); }
@@ -251,7 +256,7 @@ input[aria-invalid="true"]:focus { box-shadow: 0 0 0 3px rgba(156, 42, 33, .14);
   place-items: center;
   padding: var(--s-5);
   background:
-    radial-gradient(1100px 480px at 50% -12%, #e9f2ec 0%, transparent 62%),
+    radial-gradient(1100px 480px at 50% -12%, #F7E9EB 0%, transparent 62%),
     var(--bg);
 }
 
@@ -290,7 +295,7 @@ input[aria-invalid="true"]:focus { box-shadow: 0 0 0 3px rgba(156, 42, 33, .14);
   border-bottom: 1px solid var(--line);
 }
 
-/* Pestaña: subrayado 2px que se dibuja, sin mayúsculas */
+/* PestaÃ±a: subrayado 2px que se dibuja, sin mayÃºsculas */
 .pestana {
   position: relative;
   padding: var(--s-3) 0;
@@ -354,10 +359,10 @@ input[aria-invalid="true"]:focus { box-shadow: 0 0 0 3px rgba(156, 42, 33, .14);
   transition: opacity 160ms var(--ease-out);
   @starting-style { opacity: 0; }
 }
-.aviso--error  { background: var(--bad-bg);  border-color: #e9c9c6; color: var(--bad); }
-.aviso--exito  { background: var(--ok-bg);   border-color: #c9e0d2; color: var(--ok); }
-.aviso--info   { background: #eef2f0;        border-color: var(--line); color: var(--ink); }
-.aviso--alerta { background: var(--warn-bg); border-color: #e8d9b8; color: var(--warn); }
+.aviso--error  { background: var(--bad-bg);  border-color: #E9C9CE; color: var(--bad); }
+.aviso--exito  { background: var(--ok-bg);   border-color: #C9DCCF; color: var(--ok); }
+.aviso--info   { background: #EDEDED;        border-color: var(--line); color: var(--ink); }
+.aviso--alerta { background: var(--warn-bg); border-color: #E5CDD2; color: var(--warn); }
 .aviso[hidden] { display: none; }
 
 /* ---------- Shell del panel ---------- */
@@ -395,7 +400,7 @@ input[aria-invalid="true"]:focus { box-shadow: 0 0 0 3px rgba(156, 42, 33, .14);
   letter-spacing: -0.02em;
 }
 
-.barra__marca svg { width: 21px; height: 21px; color: #6fce9d; }
+.barra__marca svg { width: 21px; height: 21px; color: #E28C96; }
 
 /* Encabezado de grupo: caja normal, 13px, sin tracking */
 .barra__seccion {
@@ -433,7 +438,7 @@ input[aria-invalid="true"]:focus { box-shadow: 0 0 0 3px rgba(156, 42, 33, .14);
 
 /* Activo: fondo + acento en el icono, sin barra lateral */
 .barra__enlace[aria-current="page"] { background: var(--inv-surface); color: var(--inv-ink); }
-.barra__enlace[aria-current="page"] svg { color: #6fce9d; }
+.barra__enlace[aria-current="page"] svg { color: #E28C96; }
 
 .barra__pie {
   margin-top: auto;
@@ -460,7 +465,7 @@ input[aria-invalid="true"]:focus { box-shadow: 0 0 0 3px rgba(156, 42, 33, .14);
   background: #2a2a2a;
   font-size: var(--t-label);
   font-weight: 600;
-  color: #6fce9d;
+  color: #E28C96;
 }
 
 .barra__rol {
@@ -580,7 +585,7 @@ tbody tr:nth-child(5) { animation-delay: 120ms; }
 tbody tr:nth-child(6) { animation-delay: 150ms; }
 
 tbody tr:last-child td { border-bottom: 0; }
-tbody tr:hover { background: #f4f5f4; }
+tbody tr:hover { background: #ECECEC; }
 
 td.num, th.num { text-align: right; font-family: var(--font-mono); font-variant-numeric: tabular-nums; }
 
@@ -615,15 +620,15 @@ td.num, th.num { text-align: right; font-family: var(--font-mono); font-variant-
   border: 1px solid transparent;
   white-space: nowrap;
 }
-.eti--activo    { background: var(--ok-bg);   color: var(--ok);   border-color: #c9e0d2; }
-.eti--pendiente { background: var(--warn-bg); color: var(--warn); border-color: #e8d9b8; }
-.eti--rechazado { background: var(--bad-bg);  color: var(--bad);  border-color: #e9c9c6; }
-.eti--insert    { background: var(--ok-bg);   color: var(--ok);   border-color: #c9e0d2; }
-.eti--update    { background: #eef2f0;        color: var(--ink);  border-color: var(--line); }
-.eti--delete    { background: var(--bad-bg);  color: var(--bad);  border-color: #e9c9c6; }
+.eti--activo    { background: var(--ok-bg);   color: var(--ok);   border-color: #C9DCCF; }
+.eti--pendiente { background: var(--warn-bg); color: var(--warn); border-color: #E5CDD2; }
+.eti--rechazado { background: var(--bad-bg);  color: var(--bad);  border-color: #E9C9CE; }
+.eti--insert    { background: var(--ok-bg);   color: var(--ok);   border-color: #C9DCCF; }
+.eti--update    { background: #EDEDED;        color: var(--ink);  border-color: var(--line); }
+.eti--delete    { background: var(--bad-bg);  color: var(--bad);  border-color: #E9C9CE; }
 .eti--neutra    { background: var(--surface); color: var(--muted); border-color: var(--line); }
 
-/* ---------- Métricas ---------- */
+/* ---------- MÃ©tricas ---------- */
 .rejilla {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
@@ -673,7 +678,7 @@ td.num, th.num { text-align: right; font-family: var(--font-mono); font-variant-
 /* Botones de accion dentro de una celda de tabla */
 .acciones-fila { display: flex; gap: var(--s-2); }
 
-/* ---------- Menú de bodegas (inventario) ---------- */
+/* ---------- MenÃº de bodegas (inventario) ---------- */
 .menu-bodegas {
   display: flex;
   flex-wrap: wrap;
@@ -714,7 +719,7 @@ td.num, th.num { text-align: right; font-family: var(--font-mono); font-variant-
   border-color: var(--accent);
   color: var(--accent-ink);
 }
-.bodega-opcion[aria-current="true"] .bodega-opcion__total { color: rgba(255, 255, 255, .82); }
+.bodega-opcion[aria-current="true"] .bodega-opcion__total { color: rgba(242, 242, 242, .82); }
 
 /* ---------- Formularios en fila ---------- */
 .form-fila {
