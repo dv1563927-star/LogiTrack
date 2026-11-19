@@ -228,8 +228,8 @@ function disponibleEn(bodegaId, productoId) {
 }
 
 async function vistaMovimiento() {
-  const [bodegas, productos, movimientos, inventario] = await Promise.all([
-    pedir("/api/bodega"), pedir("/api/producto"), pedir("/api/movimiento"), pedir("/api/inventario")
+  const [bodegas, productos, inventario] = await Promise.all([
+    pedir("/api/bodega"), pedir("/api/producto"), pedir("/api/inventario")
   ]);
 
   movBodegas = bodegas;
@@ -302,17 +302,7 @@ async function vistaMovimiento() {
         `<span class="dato-num">${esc(p.stock)}</span>`])))}
   </div>`;
 
-  const historial = panel("Movimientos registrados", movimientos.length + " en total", tabla(
-    ["ID", "Fecha", "Tipo", "Registró", "Origen", "Destino", ""],
-    movimientos.slice().reverse().map((m) => [esc(m.id), fecha(m.fecha),
-      `<span class="eti eti--neutra">${esc(m.tipo)}</span>`,
-      esc(m.usuario?.nombre ?? m.usuario?.username),
-      esc(m.bodegaOrigen?.nombre ?? "—"),
-      esc(m.bodegaDestino?.nombre ?? "—"),
-      `<button class="boton boton--secundario boton--sm" data-ver="${esc(m.id)}">Ver detalle</button>`])
-  ));
-
-  return formulario + referencia + historial;
+  return formulario + referencia;
 }
 
 /* ---------- DETALLE: solo lectura ---------- */
@@ -721,7 +711,6 @@ function conectarVista(nombreVista, parametro) {
       });
     }
 
-    conectarBotonesVer();
   }
 
   /* ----- Detalle: solo consulta ----- */
