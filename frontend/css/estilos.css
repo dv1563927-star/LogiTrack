@@ -730,6 +730,7 @@ td.num, th.num { text-align: right; font-family: var(--mono); font-variant-numer
 .eti--update    { background: var(--panel-3); color: var(--texto); border-color: var(--borde); }
 .eti--delete    { background: var(--bad-bg);  color: var(--bad);  border-color: rgba(224, 114, 114, .3); }
 .eti--neutra    { background: var(--panel-3); color: var(--mudo); border-color: var(--borde); }
+.eti--inactivo  { background: var(--panel-3); color: var(--tenue); border-color: var(--borde); }
 
 /* ---------- Métricas ---------- */
 .rejilla {

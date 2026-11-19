@@ -10,6 +10,7 @@ import CampusLands.logitrack.repository.UsuarioRepository;
 import CampusLands.logitrack.security.JwtService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -43,6 +44,9 @@ public class AuthController {
         }
         if (usuario.getEstado() == EstadoUsuario.RECHAZADO) {
             throw new BusinessRuleException("Tu solicitud de registro fue rechazada");
+        }
+        if (usuario.getEstado() == EstadoUsuario.INACTIVO) {
+            throw new BusinessRuleException("Tu cuenta fue dada de baja. Consulta con el administrador");
         }
 
         // El token SOLO lleva el username. El rol se consulta en la BD en cada peticion.
@@ -108,5 +112,85 @@ public class AuthController {
 
         usuario.setEstado(EstadoUsuario.RECHAZADO);
         return usuarioMapper.entityToDto(usuarioRepository.save(usuario));
+    }
+
+    // ================= GESTION DE USUARIOS =================
+
+    // Lista todos los usuarios del sistema, sea cual sea su estado
+    @GetMapping("/usuarios")
+    public List<UsuarioDtoResponse> usuarios() {
+        return usuarioRepository.findAll().stream()
+                .map(usuarioMapper::entityToDto)
+                .toList();
+    }
+
+    /*
+     * Da de baja a un usuario.
+     * No se borra la fila: pasa a INACTIVO y no puede iniciar sesion.
+     * Se hace asi porque sus movimientos y su rastro en la auditoria
+     * tienen que seguir existiendo (no se puede borrar a alguien que ya opero).
+     */
+    @PostMapping("/usuarios/{id}/baja")
+    public UsuarioDtoResponse darDeBaja(@PathVariable Long id) {
+        Usuario usuario = usuarioRepository.findById(id)
+                .orElseThrow(() -> new BusinessRuleException("No existe ese usuario"));
+
+        // Un administrador no puede darse de baja a si mismo
+        if (usuario.getUsername().equals(usuarioActual())) {
+            throw new BusinessRuleException("No podes darte de baja a vos mismo");
+        }
+
+        usuario.setEstado(EstadoUsuario.INACTIVO);
+        return usuarioMapper.entityToDto(usuarioRepository.save(usuario));
+    }
+
+    // Vuelve a habilitar a un usuario que estaba dado de baja
+    @PostMapping("/usuarios/{id}/alta")
+    public UsuarioDtoResponse darDeAlta(@PathVariable Long id) {
+        Usuario usuario = usuarioRepository.findById(id)
+                .orElseThrow(() -> new BusinessRuleException("No existe ese usuario"));
+
+        if (usuario.getEstado() == EstadoUsuario.PENDIENTE) {
+            throw new BusinessRuleException("Ese usuario esta pendiente: aprobalo desde Solicitudes");
+        }
+
+        usuario.setEstado(EstadoUsuario.ACTIVO);
+        return usuarioMapper.entityToDto(usuarioRepository.save(usuario));
+    }
+
+    // Convierte a un usuario en administrador
+    @PostMapping("/usuarios/{id}/admin")
+    public UsuarioDtoResponse hacerAdministrador(@PathVariable Long id) {
+        Usuario usuario = usuarioRepository.findById(id)
+                .orElseThrow(() -> new BusinessRuleException("No existe ese usuario"));
+
+        if (usuario.getRol() == Rol.ADMIN) {
+            throw new BusinessRuleException("Ese usuario ya es administrador");
+        }
+        if (usuario.getEstado() != EstadoUsuario.ACTIVO) {
+            throw new BusinessRuleException("Solo se puede hacer administrador a un usuario activo");
+        }
+
+        usuario.setRol(Rol.ADMIN);
+        return usuarioMapper.entityToDto(usuarioRepository.save(usuario));
+    }
+
+    // Quita el rol de administrador y lo deja como empleado
+    @PostMapping("/usuarios/{id}/empleado")
+    public UsuarioDtoResponse quitarAdministrador(@PathVariable Long id) {
+        Usuario usuario = usuarioRepository.findById(id)
+                .orElseThrow(() -> new BusinessRuleException("No existe ese usuario"));
+
+        if (usuario.getUsername().equals(usuarioActual())) {
+            throw new BusinessRuleException("No podes quitarte a vos mismo el rol de administrador");
+        }
+
+        usuario.setRol(Rol.EMPLEADO);
+        return usuarioMapper.entityToDto(usuarioRepository.save(usuario));
+    }
+
+    // Username del usuario autenticado que esta haciendo la peticion
+    private String usuarioActual() {
+        return SecurityContextHolder.getContext().getAuthentication().getName();
     }
 }

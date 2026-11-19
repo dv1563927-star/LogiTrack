@@ -55,6 +55,16 @@ public class DetalleMovimientoServiceImpl implements DetalleMovimientoService {
                 throw new BusinessRuleException("La entrada no tiene bodega de destino");
             }
 
+            // La bodega tiene una capacidad maxima: no se puede sobrepasar
+            int ocupado = inventarioRepository.findByBodegaId(bodega.getId()).stream()
+                    .mapToInt(Inventario::getCantidad)
+                    .sum();
+            if (ocupado + dto.cantidad() > bodega.getCapacidad()) {
+                throw new BusinessRuleException("Capacidad insuficiente en " + bodega.getNombre()
+                        + ". Capacidad: " + bodega.getCapacidad() + ", ocupado: " + ocupado
+                        + ", no caben " + dto.cantidad() + " unidades mas");
+            }
+
             List<Inventario> filas = inventarioRepository.findByBodegaIdAndProductoId(bodega.getId(), producto.getId());
             if (filas.isEmpty()) {
                 Inventario nuevo = new Inventario();
@@ -103,6 +113,18 @@ public class DetalleMovimientoServiceImpl implements DetalleMovimientoService {
             if (inventarioOrigen.getCantidad() < dto.cantidad()) {
                 throw new BusinessRuleException("Stock insuficiente en el origen. Disponible: " + inventarioOrigen.getCantidad());
             }
+
+            // Se valida la capacidad del destino ANTES de tocar el inventario,
+            // para no dejar el origen descontado si el destino no tiene lugar
+            int ocupadoDestino = inventarioRepository.findByBodegaId(destino.getId()).stream()
+                    .mapToInt(Inventario::getCantidad)
+                    .sum();
+            if (ocupadoDestino + dto.cantidad() > destino.getCapacidad()) {
+                throw new BusinessRuleException("Capacidad insuficiente en " + destino.getNombre()
+                        + ". Capacidad: " + destino.getCapacidad() + ", ocupado: " + ocupadoDestino
+                        + ", no caben " + dto.cantidad() + " unidades mas");
+            }
+
             inventarioOrigen.setCantidad(inventarioOrigen.getCantidad() - dto.cantidad());
             inventarioRepository.save(inventarioOrigen);
 

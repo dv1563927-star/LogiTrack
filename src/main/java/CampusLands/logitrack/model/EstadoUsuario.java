@@ -4,6 +4,7 @@ public enum EstadoUsuario {
 
     PENDIENTE,
     ACTIVO,
-    RECHAZADO
+    RECHAZADO,
+    INACTIVO
 
 }

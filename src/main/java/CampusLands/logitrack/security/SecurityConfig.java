@@ -90,6 +90,9 @@ public class SecurityConfig {
                         .requestMatchers("/auth/aprobar/**").hasRole("ADMIN")
                         .requestMatchers("/auth/rechazar/**").hasRole("ADMIN")
 
+                        // ===== GESTION DE USUARIOS: solo ADMIN =====
+                        .requestMatchers("/auth/usuarios", "/auth/usuarios/**").hasRole("ADMIN")
+
                         // ===== MOVIMIENTOS: ADMIN y EMPLEADO =====
                         // El empleado existe justamente para registrar movimientos
                         .requestMatchers("/api/movimiento/**").hasAnyRole("ADMIN", "EMPLEADO")

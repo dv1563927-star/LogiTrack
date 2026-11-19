@@ -448,6 +448,51 @@ async function vistaReporte() {
     ));
 }
 
+/* ---------- Usuarios (solo administrador) ---------- */
+
+async function vistaUsuarios() {
+  const usuarios = await pedir("/auth/usuarios");
+
+  const filas = usuarios.map((u) => {
+    const esYo = u.username === usuario;
+    const activo = u.estado === "ACTIVO";
+    let acciones = "";
+
+    if (esYo) {
+      acciones = `<span class="ayuda">vos</span>`;
+    } else if (u.estado === "PENDIENTE") {
+      acciones = `<span class="ayuda">aprobalo en Solicitudes</span>`;
+    } else {
+      acciones += activo
+        ? `<button class="boton boton--peligro boton--sm" data-baja="${esc(u.id)}">Dar de baja</button>`
+        : `<button class="boton boton--secundario boton--sm" data-alta="${esc(u.id)}">Reactivar</button>`;
+
+      if (u.rol !== "ADMIN" && activo) {
+        acciones += `<button class="boton boton--secundario boton--sm" data-admin="${esc(u.id)}">Hacer admin</button>`;
+      }
+      if (u.rol === "ADMIN") {
+        acciones += `<button class="boton boton--secundario boton--sm" data-empleado="${esc(u.id)}">Quitar admin</button>`;
+      }
+    }
+
+    const clase = {
+      ACTIVO: "activo", PENDIENTE: "pendiente",
+      RECHAZADO: "rechazado", INACTIVO: "inactivo"
+    }[u.estado] || "neutra";
+
+    return [
+      esc(u.id), esc(u.username), esc(u.nombre), esc(u.telefono),
+      `<span class="eti eti--neutra">${esc(u.rol)}</span>`,
+      `<span class="eti eti--${clase}">${esc(u.estado)}</span>`,
+      `<span class="acciones-fila">${acciones}</span>`
+    ];
+  });
+
+  return panel("Usuarios del sistema", usuarios.length + " en total",
+    `<div id="usu-aviso" style="padding:14px 18px 0"></div>` +
+    tabla(["ID", "Usuario", "Nombre", "Teléfono", "Rol", "Estado", "Acciones"], filas));
+}
+
 const VISTAS = {
   bodegas:     { titulo: "Bodegas",     desc: "Cada bodega con su ubicación, capacidad y encargado.", render: vistaBodegas },
   productos:   { titulo: "Productos",   desc: "Catálogo con el stock total y el precio de cada producto.", render: vistaProductos },
@@ -455,6 +500,7 @@ const VISTAS = {
   movimiento:  { titulo: "Registrar movimiento", desc: "Elegí qué producto entra, sale o se transfiere, y entre qué bodegas. Se registra todo junto.", render: vistaMovimiento },
   detalle:     { titulo: "Detalle de un movimiento", desc: "Solo lectura: tocá «Ver detalle» en un movimiento y mirá qué se movió.", render: vistaDetalle },
   solicitudes: { titulo: "Solicitudes", desc: "Pedidos de registro esperando aprobación.", render: vistaSolicitudes, soloAdmin: true },
+  usuario:     { titulo: "Usuarios",    desc: "Dar de baja empleados, reactivarlos y asignar nuevos administradores.", render: vistaUsuarios, soloAdmin: true },
   auditoria:   { titulo: "Auditoría",   desc: "Cada cambio sobre la base, con su autor y los valores antes y después.", render: vistaAuditoria, soloAdmin: true },
   reporte:     { titulo: "Reporte",     desc: "Resumen general del inventario y de los productos más movidos.", render: vistaReporte, soloAdmin: true }
 };
@@ -477,7 +523,7 @@ async function mostrar(nombreVista, parametro) {
   const contenedor = document.getElementById("vista");
 
   // La entrada viene de arriba o de abajo segun el orden del menu
-  const orden = ["bodegas", "productos", "inventario", "movimiento", "detalle", "solicitudes", "auditoria", "reporte"];
+  const orden = ["bodegas", "productos", "inventario", "movimiento", "detalle", "solicitudes", "usuario", "auditoria", "reporte"];
   const indiceNuevo = orden.indexOf(nombreVista);
   const indiceAnterior = vistaAnterior === null ? indiceNuevo : orden.indexOf(vistaAnterior);
   contenedor.dataset.dir = indiceNuevo >= indiceAnterior ? "abajo" : "arriba";
@@ -749,6 +795,33 @@ function conectarVista(nombreVista, parametro) {
     document.querySelectorAll("[data-rechazar]").forEach((b) => {
       b.addEventListener("click", () => resolverSolicitud(b.dataset.rechazar, "rechazar", b));
     });
+  }
+  /* ----- Usuarios ----- */
+  if (nombreVista === "usuario") {
+    document.querySelectorAll("[data-baja]").forEach((b) => {
+      b.addEventListener("click", () => resolverUsuario(b.dataset.baja, "baja", b));
+    });
+    document.querySelectorAll("[data-alta]").forEach((b) => {
+      b.addEventListener("click", () => resolverUsuario(b.dataset.alta, "alta", b));
+    });
+    document.querySelectorAll("[data-admin]").forEach((b) => {
+      b.addEventListener("click", () => resolverUsuario(b.dataset.admin, "admin", b));
+    });
+    document.querySelectorAll("[data-empleado]").forEach((b) => {
+      b.addEventListener("click", () => resolverUsuario(b.dataset.empleado, "empleado", b));
+    });
+  }
+}
+
+async function resolverUsuario(id, accion, boton) {
+  boton.disabled = true;
+  try {
+    await pedir(`/auth/usuarios/${id}/${accion}`, { method: "POST" });
+    mostrar("usuario");
+  } catch (error) {
+    const aviso = document.getElementById("usu-aviso");
+    if (aviso) aviso.innerHTML = mensaje(error.message, "error");
+    boton.disabled = false;
   }
 }
 
