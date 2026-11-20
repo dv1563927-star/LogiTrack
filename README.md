@@ -33,33 +33,21 @@ movimientos, consultar el inventario y probar la API en Swagger.
 
 ## Instalación
 
-### 1. Crear la base de datos
-
-Ejecutá el script completo en MySQL Workbench (o por consola):
-
-```
-sql/logitrack.sql
-```
-
-Ese script crea la base `logitrack` (utf8mb4), las **7 tablas** y los datos de prueba.
-
-Por consola:
-
-```bash
-mysql -u root -p < sql/logitrack.sql
-```
-
-### 2. Configurar las credenciales
+### 1. Configurar las credenciales
 
 En `src/main/resources/application.properties`:
 
 ```properties
-spring.datasource.url=jdbc:mysql://localhost:3306/logitrack
+spring.datasource.url=jdbc:mysql://localhost:3306/logitrack?createDatabaseIfNotExist=true&characterEncoding=UTF-8
 spring.datasource.username=root
 spring.datasource.password=TU_CONTRASEÑA
 ```
 
-### 3. Ejecutar
+La opción `createDatabaseIfNotExist=true` hace que **MySQL cree la base sola** si todavía no
+existe. No hace falta crearla a mano: en el primer arranque la aplicación crea la base, las
+**7 tablas** (`schema.sql`) y los usuarios iniciales (`data.sql`), incluido el administrador.
+
+### 2. Ejecutar
 
 Desde la raíz del proyecto:
 
@@ -71,11 +59,23 @@ O abrir el proyecto en IntelliJ / Spring Tool Suite y ejecutar `LogiTrackApplica
 
 La API queda disponible en `http://localhost:8080`.
 
+### 3. (Opcional) Cargar los datos de demostración
+
+Si además de los usuarios querés las bodegas, productos e inventario de ejemplo:
+
+```bash
+mysql -u root -p < sql/logitrack.sql
+```
+
+> Ese script **borra y recrea** toda la base con los datos de demostración. Si ya venías
+> usando la aplicación, perdés lo que tenías cargado.
+
 ---
 
 ## Usuarios iniciales
 
-Los crea el script SQL. **Las contraseñas están en texto plano** por tratarse de un
+Los crea `data.sql` en el primer arranque (con `INSERT IGNORE`: si ya existen, no se
+duplican). **Las contraseñas están en texto plano** por tratarse de un
 ejercicio académico; en un sistema real se almacenarían con BCrypt.
 
 | Usuario | Contraseña | Rol | Estado |

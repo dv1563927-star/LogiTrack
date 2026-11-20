@@ -28,4 +28,10 @@ INSERT IGNORE INTO inventario (id, bodega_id, producto_id, cantidad) VALUES
 (6, 3, 1, 3),
 (7, 2, 3, 10);
 
--- Los usuarios de prueba los crea sql/logitrack.sql junto con el resto del esquema.
+-- ------------------------- USUARIOS ------------------------
+-- INSERT IGNORE: si el usuario ya existe (el username es unico) no se duplica.
+-- Asi, apenas arranca la aplicacion en una base vacia, ya hay un admin para entrar.
+INSERT IGNORE INTO usuario (username, password, nombre, telefono, rol, estado) VALUES
+('admin',      'admin123',    'Administrador LogiTrack', '3001234567', 'ADMIN',    'ACTIVO'),
+('empleado',   'empleado123', 'Empleado de Prueba',      '3009876543', 'EMPLEADO', 'ACTIVO'),
+('juan.perez', 'clave1234',   'Juan Perez',              '3105551234', 'EMPLEADO', 'PENDIENTE');
