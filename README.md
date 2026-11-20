@@ -61,7 +61,7 @@ La API queda disponible en `http://localhost:8080`.
 
 ### 3. (Opcional) Cargar los datos de demostración
 
-Si además de los usuarios querés las bodegas, productos e inventario de ejemplo:
+Si además de los usuarios quiere las bodegas, productos e inventario de ejemplo:
 
 ```bash
 mysql -u root -p < sql/logitrack.sql
@@ -96,7 +96,7 @@ ejercicio académico; en un sistema real se almacenarían con BCrypt.
    pendiente, la API responde:
 
    ```json
-   { "status": 400, "message": "Tu solicitud de registro esta pendiente de aprobacion" }
+   { "status": 400, "message": "Su solicitud de registro está pendiente de aprobación" }
    ```
 
 ---

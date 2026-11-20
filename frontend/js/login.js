@@ -89,7 +89,7 @@ document.getElementById("form-login").addEventListener("submit", async (evento) 
   mostrarAviso("login-aviso", "login-aviso-texto", "", "");
 
   if (!usuario || !clave) {
-    mostrarAviso("login-aviso", "login-aviso-texto", "Completá usuario y contraseña.", "error");
+    mostrarAviso("login-aviso", "login-aviso-texto", "Complete usuario y contraseña.", "error");
     return;
   }
 
@@ -120,7 +120,7 @@ document.getElementById("form-login").addEventListener("submit", async (evento) 
 
   } catch (e) {
     mostrarAviso("login-aviso", "login-aviso-texto",
-      "No se pudo conectar con la API. Verificá que esté corriendo en localhost:8080.", "error");
+      "No se pudo conectar con la API. Verifique que esté corriendo en localhost:8080.", "error");
   } finally {
     cargando(boton, false);
   }
@@ -143,7 +143,7 @@ document.getElementById("form-registro").addEventListener("submit", async (event
   errorClave.hidden = true;
 
   if (!usuario || !nombre || !telefono || !clave || !clave2) {
-    mostrarAviso("registro-aviso", "registro-aviso-texto", "Completá todos los campos.", "error");
+    mostrarAviso("registro-aviso", "registro-aviso-texto", "Complete todos los campos.", "error");
     return;
   }
   if (clave !== clave2) {
@@ -174,7 +174,7 @@ document.getElementById("form-registro").addEventListener("submit", async (event
 
   } catch (e) {
     mostrarAviso("registro-aviso", "registro-aviso-texto",
-      "No se pudo conectar con la API. Verificá que esté corriendo en localhost:8080.", "error");
+      "No se pudo conectar con la API. Verifique que esté corriendo en localhost:8080.", "error");
   } finally {
     cargando(boton, false);
   }

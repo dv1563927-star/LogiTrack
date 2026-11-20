@@ -46,7 +46,7 @@ public class SecurityConfig {
                  * Sin esto, Spring responde 403 en los dos casos y sin mensaje propio.
                  *
                  * 401 = no sé quién sos (falta el token, venció o es inválido).
-                 * 403 = sé quién sos, pero no tenés el rol.
+                 * 403 = sé quién es, pero no tiene el rol.
                  *
                  * El JSON tiene el mismo formato que el del GlobalExceptionHandler.
                  */
@@ -70,7 +70,7 @@ public class SecurityConfig {
                             response.getWriter().write(
                                     "{\"timestamp\":\"" + LocalDateTime.now() + "\","
                                             + "\"status\":403,"
-                                            + "\"message\":\"No tenés permisos para esta operación\","
+                                            + "\"message\":\"No tiene permisos para esta operación\","
                                             + "\"errorCode\":\"FORBIDDEN\"}");
                         })
                 )

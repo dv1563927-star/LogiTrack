@@ -40,13 +40,13 @@ public class AuthController {
 
         // Solo los usuarios aprobados pueden entrar
         if (usuario.getEstado() == EstadoUsuario.PENDIENTE) {
-            throw new BusinessRuleException("Tu solicitud de registro esta pendiente de aprobacion");
+            throw new BusinessRuleException("Su solicitud de registro está pendiente de aprobación");
         }
         if (usuario.getEstado() == EstadoUsuario.RECHAZADO) {
-            throw new BusinessRuleException("Tu solicitud de registro fue rechazada");
+            throw new BusinessRuleException("Su solicitud de registro fue rechazada");
         }
         if (usuario.getEstado() == EstadoUsuario.INACTIVO) {
-            throw new BusinessRuleException("Tu cuenta fue dada de baja. Consulta con el administrador");
+            throw new BusinessRuleException("Su cuenta fue dada de baja. Consulte con el administrador");
         }
 
         // El token SOLO lleva el username. El rol se consulta en la BD en cada peticion.
@@ -137,7 +137,7 @@ public class AuthController {
 
         // Un administrador no puede darse de baja a si mismo
         if (usuario.getUsername().equals(usuarioActual())) {
-            throw new BusinessRuleException("No podes darte de baja a vos mismo");
+            throw new BusinessRuleException("No puede darse de baja a usted mismo");
         }
 
         usuario.setEstado(EstadoUsuario.INACTIVO);
@@ -151,7 +151,7 @@ public class AuthController {
                 .orElseThrow(() -> new BusinessRuleException("No existe ese usuario"));
 
         if (usuario.getEstado() == EstadoUsuario.PENDIENTE) {
-            throw new BusinessRuleException("Ese usuario esta pendiente: aprobalo desde Solicitudes");
+            throw new BusinessRuleException("Ese usuario está pendiente: apruébelo desde Solicitudes");
         }
 
         usuario.setEstado(EstadoUsuario.ACTIVO);
@@ -182,7 +182,7 @@ public class AuthController {
                 .orElseThrow(() -> new BusinessRuleException("No existe ese usuario"));
 
         if (usuario.getUsername().equals(usuarioActual())) {
-            throw new BusinessRuleException("No podes quitarte a vos mismo el rol de administrador");
+            throw new BusinessRuleException("No puede quitarse a usted mismo el rol de administrador");
         }
 
         usuario.setRol(Rol.EMPLEADO);

@@ -72,7 +72,7 @@ async function pedir(ruta, opciones = {}) {
     } catch (e) { /* respuesta sin cuerpo */ }
 
     if (respuesta.status === 403) {
-      mensaje = "No tenés permisos para esta operación.";
+      mensaje = "No tiene permisos para esta operación.";
     }
     throw new Error(mensaje);
   }
@@ -91,7 +91,7 @@ function panel(titulo, subtitulo, contenido) {
 function tabla(cabeceras, filas) {
   if (!filas.length) {
     return `<div class="celda-vacia"><strong>Sin registros todavía</strong>
-      ${esAdmin ? "Creá el primero con el formulario de arriba." : "Cuando existan datos van a aparecer acá."}</div>`;
+      ${esAdmin ? "Cree el primero con el formulario de arriba." : "Cuando existan datos van a aparecer aquí."}</div>`;
   }
   const th = cabeceras.map((c) => `<th>${esc(c)}</th>`).join("");
   const tr = filas.map((fila) => "<tr>" + fila.map((c) => `<td>${c}</td>`).join("") + "</tr>").join("");
@@ -183,7 +183,7 @@ async function vistaInventario() {
 
   if (!bodegas.length) {
     return panel("Inventario", "Sin bodegas registradas",
-      `<div class="celda-vacia"><strong>No hay bodegas todavía</strong>Creá una desde la sección Bodegas.</div>`);
+      `<div class="celda-vacia"><strong>No hay bodegas todavía</strong>Cree una desde la sección Bodegas.</div>`);
   }
 
   if (bodegaActual === null || !bodegas.some((b) => b.id === bodegaActual)) {
@@ -199,7 +199,7 @@ async function vistaInventario() {
   }).join("");
 
   return `<div class="panel">
-      <div class="panel__cabecera"><div><h3>Elegí una bodega</h3><p>El número es el total de unidades que tiene</p></div></div>
+      <div class="panel__cabecera"><div><h3>Elija una bodega</h3><p>El número es el total de unidades que tiene</p></div></div>
       <div class="menu-bodegas">${menu}</div>
     </div>
     <div id="inventario-bodega"></div>`;
@@ -263,7 +263,7 @@ async function vistaMovimiento() {
 
   const formulario = panel(
     "Registrar movimiento",
-    "Elegí qué pasa, entre qué bodegas y con qué producto. Se registra todo junto.",
+    "Elija qué pasa, entre qué bodegas y con qué producto. Se registra todo junto.",
     sinBodegas
       ? `<div class="form-cuerpo">${mensaje("Primero necesitás al menos una bodega y un producto.", "alerta")}</div>`
       : `
@@ -325,9 +325,9 @@ async function vistaDetalle() {
 
   const resultado = `<div id="d-resultado">${
     movimientos.length
-      ? `<div class="panel"><div class="celda-vacia">Elegí un movimiento para ver qué se movió.</div></div>`
+      ? `<div class="panel"><div class="celda-vacia">Elija un movimiento para ver qué se movió.</div></div>`
       : `<div class="panel"><div class="celda-vacia"><strong>Todavía no hay movimientos</strong>
-         Registrá uno desde la sección Movimientos.</div></div>`
+         Registre uno desde la sección Movimientos.</div></div>`
   }</div>`;
 
   const lista = panel("Movimientos", movimientos.length + " en total", tabla(
@@ -459,7 +459,7 @@ async function vistaUsuarios() {
     let acciones = "";
 
     if (esYo) {
-      acciones = `<span class="ayuda">vos</span>`;
+      acciones = `<span class="ayuda">su cuenta</span>`;
     } else if (u.estado === "PENDIENTE") {
       acciones = `<span class="ayuda">aprobalo en Solicitudes</span>`;
     } else {
@@ -496,9 +496,9 @@ async function vistaUsuarios() {
 const VISTAS = {
   bodegas:     { titulo: "Bodegas",     desc: "Cada bodega con su ubicación, capacidad y encargado.", render: vistaBodegas },
   productos:   { titulo: "Productos",   desc: "Catálogo con el stock total y el precio de cada producto.", render: vistaProductos },
-  inventario:  { titulo: "Inventario",  desc: "Elegí una bodega del menú y mirá qué productos tiene.", render: vistaInventario },
-  movimiento:  { titulo: "Registrar movimiento", desc: "Elegí qué producto entra, sale o se transfiere, y entre qué bodegas. Se registra todo junto.", render: vistaMovimiento },
-  detalle:     { titulo: "Detalle de un movimiento", desc: "Solo lectura: tocá «Ver detalle» en un movimiento y mirá qué se movió.", render: vistaDetalle },
+  inventario:  { titulo: "Inventario",  desc: "Elija una bodega del menú y vea qué productos tiene.", render: vistaInventario },
+  movimiento:  { titulo: "Registrar movimiento", desc: "Elija qué producto entra, sale o se transfiere, y entre qué bodegas. Se registra todo junto.", render: vistaMovimiento },
+  detalle:     { titulo: "Detalle de un movimiento", desc: "Solo lectura: toque «Ver detalle» en un movimiento y vea qué se movió.", render: vistaDetalle },
   solicitudes: { titulo: "Solicitudes", desc: "Pedidos de registro esperando aprobación.", render: vistaSolicitudes, soloAdmin: true },
   usuario:     { titulo: "Usuarios",    desc: "Dar de baja empleados, reactivarlos y asignar nuevos administradores.", render: vistaUsuarios, soloAdmin: true },
   auditoria:   { titulo: "Auditoría",   desc: "Cada cambio sobre la base, con su autor y los valores antes y después.", render: vistaAuditoria, soloAdmin: true },
@@ -596,14 +596,14 @@ function actualizarContextoMovimiento() {
     texto = `En <strong>${esc(origen?.nombre ?? "la bodega")}</strong> hay <strong>${disponibles}</strong> de ${nombreProducto}.`;
     if (cantidad > disponibles) {
       alerta = true;
-      texto += ` No alcanza: te pasás por ${cantidad - disponibles}.`;
+      texto += ` No alcanza: se pasa por ${cantidad - disponibles}.`;
     }
 
   } else {
     // TRANSFERENCIA
     if (origenId === destinoId) {
       alerta = true;
-      texto = `Elegí dos bodegas distintas: ahora las dos son <strong>${esc(origen?.nombre ?? "la misma bodega")}</strong>.`;
+      texto = `Elija dos bodegas distintas: ahora las dos son <strong>${esc(origen?.nombre ?? "la misma bodega")}</strong>.`;
     } else {
       const enOrigen = disponibleEn(origenId, productoId);
       const enDestino = disponibleEn(destinoId, productoId);
@@ -731,7 +731,7 @@ function conectarVista(nombreVista, parametro) {
           return;
         }
         if (tipoValor === "TRANSFERENCIA" && origen === destino) {
-          avisar("m-aviso", "Elegí dos bodegas distintas para transferir.", "error");
+          avisar("m-aviso", "Elija dos bodegas distintas para transferir.", "error");
           return;
         }
 
@@ -740,7 +740,7 @@ function conectarVista(nombreVista, parametro) {
           const disponibles = disponibleEn(origen, productoId);
           if (cantidad > disponibles) {
             avisar("m-aviso",
-              `En esa bodega hay ${disponibles} unidades de ese producto. No podés mover ${cantidad}.`, "error");
+              `En esa bodega hay ${disponibles} unidades de ese producto. No puede mover ${cantidad}.`, "error");
             return;
           }
         }
